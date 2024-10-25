@@ -14,7 +14,7 @@ dist-ssr
 
 # Editor directories and files
 .vscode/*
-!.vscode/extensions.json
+!.vscode/settings.json
 .idea
 .DS_Store
 *.suo
@@ -27,4 +27,4 @@ dist-ssr
 /lib/
 .bsb.lock
 .merlin
-.res.mjs
+*.res.mjs
