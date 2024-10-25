@@ -4,7 +4,7 @@ module HexText = {
   @react.component
   let make = (~q, ~r, ~s, ~x, ~y) => {
     let style = ReactDOM.Style.make(
-      ~fontSize="4px",
+      ~fontSize="3px",
       ~fontFamily="monospace",
       ~pointerEvents="none",
       (),
@@ -43,13 +43,13 @@ module Hexagon = {
     let {x, y} = layout->Layout.hexToPixel(hex)
 
     let hexFill = switch (q, r, s) {
-    | (0, r, s) if r != 0 && s != 0 => "fill-red-100"
+    | (0, r, s) if r != 0 && s != 0 => "fill-rose-100"
     | (q, 0, s) if q != 0 && s != 0 => "fill-green-100"
     | (q, r, 0) if q != 0 && r != 0 => "fill-blue-100"
     | _ => "fill-slate-50"
     }
 
-    let classNames = `fill-white stroke-slate-300 ${hexFill}`
+    let classNames = `stroke-slate-300 ${hexFill}`
 
     <>
       <polygon className={classNames} points={Js.Array.joinWith(",", pointsString)} />
@@ -89,11 +89,13 @@ let make = () => {
     <h1 className="text-3xl font-semibold"> {"Hexagon Grid Creation"->React.string} </h1>
     <p> {React.string("The goal here is to create a hex-grid using ReScript and React.")} </p>
     <a
-      href="https://www.redblobgames.com/grids/hexagons/" target="_blank" className="text-blue-500">
+      href="https://www.redblobgames.com/grids/hexagons/"
+      target="_blank"
+      className="text-blue-500 fill-r">
       {React.string("Reference")}
     </a>
     <hr className="mb-4 mt-4 fill" />
-    <svg viewBox="0 0 200 200" className="border-2 border-sky-900">
+    <svg viewBox="-80 -80 200 200" className="border-2 border-sky-900">
       <HexGridMap q1={-3} q2={3} r1={-3} r2={3} />
       // <Hexagon layout />
       // <Hexagon layout q=1 r={-1} s=0 />
