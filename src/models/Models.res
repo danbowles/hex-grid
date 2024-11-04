@@ -159,7 +159,7 @@ module Layout = {
   }
 }
 
-module HexMap = {
+module HexHashTable = {
   type t = Dict.t<Hex.t>
 
   let make = () => Dict.make()
@@ -173,5 +173,33 @@ module HexMap = {
   let insert = (map, hex) => Dict.set(map, hex->hash, hex)
   let get = (map, hex) => Dict.get(map, hex->hash)
   let remove = (map, hex) => Dict.delete(map, hex->hash)
-  // type t = Dict<Hex>
+}
+
+module ParallelogramMap = {
+  type direction = LeftRight | TopBottom | RightLeft
+  type t = {
+    hashTable: HexHashTable.t,
+    direction: direction
+  }
+
+  let makeLeftRight = (q1, q2, r1, r2) => {
+      let hashTable = HexHashTable.make()
+    for q in q1 to q2 {
+      for r in r1 to r2 {
+        let s = -q - r
+        let hex = Hex.make(q, r, s)
+        hashTable->HexHashTable.insert(hex)
+      }
+    }
+
+    {hashTable: hashTable, direction: LeftRight}
+  }
+  let make: (int, direction) => t = (size, direction) => {
+    switch direction {
+    | _ => makeLeftRight(-size, size, -size, size)
+    }
+
+  }
+
+  let toArray = (map: t) => map.hashTable->Dict.valuesToArray
 }

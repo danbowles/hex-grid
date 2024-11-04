@@ -1,35 +1,5 @@
 open Models
-
-module HexText = {
-  @react.component
-  let make = (~q, ~r, ~s, ~x, ~y) => {
-    let style = ReactDOM.Style.make(
-      ~fontSize="3px",
-      ~fontFamily="monospace",
-      ~pointerEvents="none",
-      (),
-    )
-    let text = switch (q, r, s) {
-    | (0, 0, 0) => "q,r,s"
-    | _ => `${q->Int.toString},${r->Int.toString},${s->Int.toString}`
-    }->React.string
-
-    let textFill = switch (q, r, s) {
-    | (0, r, s) if r != 0 && s != 0 => "fill-red-500"
-    | (q, 0, s) if q != 0 && s != 0 => "fill-green-500"
-    | (q, r, 0) if q != 0 && r != 0 => "fill-blue-500"
-    | _ => "fill-black"
-    }
-    <text
-      style
-      textAnchor="middle"
-      x={x->Float.toString}
-      y={(y +. 1.5)->Float.toString}
-      className={textFill}>
-      {text}
-    </text>
-  }
-}
+open HexText
 
 module Hexagon = {
   @react.component
@@ -62,23 +32,15 @@ module Hexagon = {
   }
 }
 
-module HexGridMap = {
+module Parallelogram = {
   @react.component
-  let make = (~q1, ~q2, ~r1, ~r2) => {
-    let hexMap = HexMap.make()
+  let make = (~size, ~direction: ParallelogramMap.direction) => {
+    let parallelogramMap = ParallelogramMap.make(size, direction)
     let size = Point.makeFloat(10.0, 10.0)
     let origin = Point.makeFloat(size.x, size.y *. Math.sqrt(3.0) /. 2.0)
     let layout = Layout.make(Orientation.pointy, size->Point.toInt, origin)
 
-    for q in q1 to q2 {
-      for r in r1 to r2 {
-        let s = -q - r
-        let hex = Hex.make(q, r, s)
-        hexMap->HexMap.insert(hex)
-      }
-    }
-
-    let hexes = hexMap->Dict.valuesToArray
+    let hexes = ParallelogramMap.toArray(parallelogramMap)
     {hexes->Array.map(({q, r, s}) => <Hexagon layout q r s />)->React.array}
   }
 }
@@ -95,16 +57,22 @@ let make = () => {
       {React.string("Reference")}
     </a>
     <hr className="mb-4 mt-4 fill" />
-    <svg viewBox="-80 -80 200 200" className="border-2 border-sky-900">
-      <HexGridMap q1={-3} q2={3} r1={-3} r2={3} />
-      // <Hexagon layout />
-      // <Hexagon layout q=1 r={-1} s=0 />
-      // <Hexagon layout q=2 r={-2} s=0 />
-      // <Hexagon layout q={-1} r={1} s=0 />
-      // <Hexagon layout q={-2} r={2} s=0 />
-      // <Hexagon layout q={-1} r={0} s={1} />
-      // <Hexagon layout q={-1} r={-1} s={2} />
-      // <Hexagon layout q={-1} r={-2} s={3} />
-    </svg>
+    <div className="flex gap-x-2">
+      <figure className="border-2 border-sky-900 flex-1">
+        <svg viewBox="-80 -60 200 200">
+          <Parallelogram size={3} direction={ParallelogramMap.LeftRight} />
+        </svg>
+      </figure>
+      <figure className="border-2 border-sky-900 flex-1">
+        <svg viewBox="-80 -60 200 200">
+          <Parallelogram size={3} direction={ParallelogramMap.TopBottom} />
+        </svg>
+      </figure>
+      <figure className="border-2 border-sky-900 flex-1">
+        <svg viewBox="-80 -60 200 200">
+          <Parallelogram size={3} direction={ParallelogramMap.LeftRight} />
+        </svg>
+      </figure>
+    </div>
   </div>
 }
