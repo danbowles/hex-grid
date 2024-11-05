@@ -38,6 +38,11 @@ module Hex = {
 
   let hexAdd: (t, t) => t = (a, b) => {q: a.q + b.q, r: a.r + b.r, s: a.s + b.s}
 
+  let toString: t => string = hex => {
+    let {q, r, s} = hex
+    `Hex(${q->Int.toString}, ${r->Int.toString}, ${s->Int.toString})`
+  }
+
   let hexDirection = direction => {
     if direction > 0 && direction < 6 {
       directions[direction]
@@ -175,6 +180,32 @@ module HexHashTable = {
   let remove = (map, hex) => Dict.delete(map, hex->hash)
 }
 
+module HexagonalMap = {
+  type t = {
+    hashTable: HexHashTable.t,
+    size: int
+  }
+
+  let min = (a, b) => if a < b {a} else {b}
+  let max = (a, b) => if a > b {a} else {b}
+
+  let make = size => {
+    let hashTable = HexHashTable.make()
+    for q in -size to size {
+      let r1 = max(-size, -q - size)
+      let r2 = min(size, -q + size)
+      for r in r1 to r2 {
+        let s = -q - r
+        let hex = Hex.make(q, r, s)
+        hashTable->HexHashTable.insert(hex)
+      }
+    }
+
+    {hashTable: hashTable, size}
+  }
+
+  let toArray = (map: t) => map.hashTable->Dict.valuesToArray
+}
 module ParallelogramMap = {
   type direction = LeftRight | TopBottom | RightLeft
   type t = {
@@ -182,8 +213,10 @@ module ParallelogramMap = {
     direction: direction
   }
 
+  
+
   let makeLeftRight = (q1, q2, r1, r2) => {
-      let hashTable = HexHashTable.make()
+    let hashTable = HexHashTable.make()
     for q in q1 to q2 {
       for r in r1 to r2 {
         let s = -q - r
