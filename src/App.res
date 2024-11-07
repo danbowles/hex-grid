@@ -10,7 +10,7 @@ type mapType =
 
 module Hexagon = {
   @react.component
-  let make = (~layout: Layout.t, ~q=0, ~r=0, ~s=0) => {
+  let make = (~layout: Layout.t, ~q=0, ~r=0, ~s=0, ~showColors, ~showCoords, ~showDebugCircle) => {
     let style = ReactDOM.Style.make(~strokeWidth="0.3", ())
     let hex = Hex.make(q, r, s)
     let hexCorners = layout->Layout.polygonCorners(hex)
@@ -27,14 +27,13 @@ module Hexagon = {
     | _ => "fill-slate-50"
     }
 
-    let classNames = `stroke-slate-500 ${hexFill}`
+    let classNames = `stroke-slate-500 ${showColors ? hexFill : "fill-slate-50"}`
 
     <>
       <polygon className={classNames} points={Js.Array.joinWith(",", pointsString)} style={style} />
       <g>
-        // Debug
-        // <circle cx={x->Float.toString} cy={y->Float.toString} r="1" className="fill-red-500" />
-        <HexText q r s x y />
+        {showDebugCircle ? <circle cx={x->Float.toString} cy={y->Float.toString} r="1" className="fill-red-500" /> : <></>}
+        {showCoords ? <HexText q r s x y /> : <></>}
       </g>
     </>
   }
@@ -43,6 +42,7 @@ module Hexagon = {
 module HexagonGrid = {
   @react.component
   let make = (~size) => {
+    let {showColors, showCoords, showDebugCircle} = ControlsContext.useContext()
     let hexMap = HexagonalMap.make(size)
     let size = Point.makeFloat(10.0, 10.0)
     let origin = Point.makeFloat(size.x, size.y *. Math.sqrt(3.0) /. 2.0)
@@ -53,7 +53,7 @@ module HexagonGrid = {
     ->Array.map(hex => {
       let {q, r, s} = hex
       let key = hex->Hex.toString
-      <Hexagon key layout q r s />
+      <Hexagon key layout q r s showColors showCoords showDebugCircle />
     })
     ->React.array
   }
@@ -62,6 +62,7 @@ module HexagonGrid = {
 module ParallelogramGrid = {
   @react.component
   let make = (~size, ~direction: ParallelogramMap.direction) => {
+    let {showColors, showCoords, showDebugCircle} = ControlsContext.useContext()
     let parallelogramMap = ParallelogramMap.make(size, direction)
     let size = Point.makeFloat(10.0, 10.0)
     let origin = Point.makeFloat(size.x, size.y *. Math.sqrt(3.0) /. 2.0)
@@ -72,7 +73,7 @@ module ParallelogramGrid = {
     ->Array.map(hex => {
       let {q, r, s} = hex
       let key = hex->Hex.toString
-      <Hexagon key layout q r s />
+      <Hexagon key layout q r s showColors showCoords showDebugCircle />
     })
     ->React.array
   }
@@ -117,16 +118,13 @@ let make = () => {
       </div>
     </div>
     <hr className="my-8 border-t-2 border-gray-300" />
-    <div className="grid grid-cols-2 gap-4">
-      <Figure caption="Parallelogram Map">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <FigureWithControls caption="Parallelogram Map">
         <Map mapType={Parallelogram} size={6} />
-      </Figure>
-      <Figure caption="Hexagon Map">
-        <Map mapType={Hexagon} size={6} />
-      </Figure>
+      </FigureWithControls>
       <FigureWithControls caption="Hexagon Map">
         <Svg>
-          <HexagonGrid size={6} />
+        <Map mapType={Hexagon} size={6} />
         </Svg>
       </FigureWithControls>
     </div>
