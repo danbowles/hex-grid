@@ -1,22 +1,12 @@
 open Models
 open HexText
+open Figure
+open FigureWithControls
+open Svg
 
-type svgRect = {
-  x: float,
-  y: float,
-  width: float,
-  height: float,
-}
-@send external getBBox: (Dom.element) => svgRect = "getBBox"
-
-module Figure = {
-  @react.component
-  let make = (~children) => {
-    <figure className="border-4 border-indigo-200 rounded-lg mb-6">
-      {children}
-    </figure>
-  }
-}
+type mapType =
+  | Parallelogram
+  | Hexagon
 
 module Hexagon = {
   @react.component
@@ -50,23 +40,6 @@ module Hexagon = {
   }
 }
 
-module Parallelogram = {
-  @react.component
-  let make = (~size, ~direction: ParallelogramMap.direction) => {
-    let parallelogramMap = ParallelogramMap.make(size, direction)
-    let size = Point.makeFloat(10.0, 10.0)
-    let origin = Point.makeFloat(size.x, size.y *. Math.sqrt(3.0) /. 2.0)
-    let layout = Layout.make(Orientation.pointy, size->Point.toInt, origin)
-
-    let hexes = ParallelogramMap.toArray(parallelogramMap)
-    hexes->Array.map(hex => {
-      let {q, r, s} = hex
-      let key = hex->Hex.toString
-      <Hexagon key layout q r s />
-    })->React.array
-  }
-}
-
 module HexagonGrid = {
   @react.component
   let make = (~size) => {
@@ -76,80 +49,86 @@ module HexagonGrid = {
     let layout = Layout.make(Orientation.pointy, size->Point.toInt, origin)
 
     let hexes = HexagonalMap.toArray(hexMap)
-    hexes->Array.map(hex => {
+    hexes
+    ->Array.map(hex => {
       let {q, r, s} = hex
       let key = hex->Hex.toString
       <Hexagon key layout q r s />
-    })->React.array
+    })
+    ->React.array
   }
 }
 
-module Svg = {
-  module Group = {
+module ParallelogramGrid = {
   @react.component
-  let make = (~children, ~setGroupRef=?) => {
-    let setGroupRef = element => {
-    switch setGroupRef {
-    | Some(setGroupRef) => setGroupRef(element)
-    | None => ()
-    }
-  }
-    <g ref={ReactDOM.Ref.callbackDomRef(setGroupRef)}>
-      {children}
-    </g>
+  let make = (~size, ~direction: ParallelogramMap.direction) => {
+    let parallelogramMap = ParallelogramMap.make(size, direction)
+    let size = Point.makeFloat(10.0, 10.0)
+    let origin = Point.makeFloat(size.x, size.y *. Math.sqrt(3.0) /. 2.0)
+    let layout = Layout.make(Orientation.pointy, size->Point.toInt, origin)
+
+    let hexes = ParallelogramMap.toArray(parallelogramMap)
+    hexes
+    ->Array.map(hex => {
+      let {q, r, s} = hex
+      let key = hex->Hex.toString
+      <Hexagon key layout q r s />
+    })
+    ->React.array
   }
 }
+
+module Map = {
   @react.component
-  let make = (~children) => {
-    let innerPadding = 2.0
-    let (viewBox, setViewBox) = React.useState(() => "-80 -60 200 200")
-  let handleGroupRef = el => {
-    switch el->Nullable.toOption {
-    | Some(el) => {
-      let {x, y, width, height} = el->getBBox
-      // Oof.  Likely a better way to do this.
-      setViewBox(_ => `${(x-.innerPadding)->Float.toString} ${(y-.innerPadding)->Float.toString} ${(width+.(innerPadding*.2.0))->Float.toString}  ${(height+.(innerPadding*.2.0))->Float.toString}`)
-    }
-    | None => ()
-    }
-  }
-    <svg viewBox>
-      <Group setGroupRef={handleGroupRef}>
-      {children}
-      </Group>
-    </svg>
+  let make = (~mapType: mapType, ~size, ~newProp=?) => {
+    Js.log(newProp)
+    <Svg>
+      {switch mapType {
+      | Parallelogram => <ParallelogramGrid size direction={ParallelogramMap.LeftRight} />
+      | Hexagon => <HexagonGrid size />
+      }}
+    </Svg>
   }
 }
-
-
 
 @react.component
 let make = () => {
-  <div className="p-6">
-    <h1 className="text-3xl font-semibold"> {"Hexagon Grid Creation"->React.string} </h1>
-    <p> {React.string("The goal here is to create a hex-grid using ReScript and React.")} </p>
-    <a
-      href="https://www.redblobgames.com/grids/hexagons/"
-      target="_blank"
-      className="text-blue-500 fill-r">
-      {React.string("Reference")}
-    </a>
-    <hr className="mb-4 mt-4 fill" />
-    <div>
-      <h2 className="text-2xl mb-2">{"Parallelogram Map"->React.string}</h2>
-      <Figure>
-        <Svg>
-          <Parallelogram size={6} direction={ParallelogramMap.LeftRight} />
-        </Svg>
-      </Figure>
+  <div className="w-full max-w-screen-xl mx-auto mt-8 mb-8 pl-5 pr-5">
+    <div className="flex justify-start items-center mb-8 flex-col md:flex-row">
+      <div>
+        <h1 className="text-4xl font-bold"> {"Hexagon Grid Creator"->React.string} </h1>
+        <p className="text-lg text-gray-600">
+          {"Create and visualize hexagonal grids with ease"->React.string}
+        </p>
+      </div>
+      <div className="flex flex-wrap space-x-4 m-0 mt-4 md:ml-auto">
+        <a href="https://www.redblobgames.com/grids/hexagons/" target="_blank" className="text-blue-500 hover:underline">
+          {React.string("Reference")}
+        </a>
+        <a href="https://rescript-lang.org/" target="_blank" className="text-blue-500 hover:underline">
+          {React.string("ReScript")}
+        </a>
+        <a href="https://reactjs.org/" target="_blank" className="text-blue-500 hover:underline">
+          {React.string("React")}
+        </a>
+        <a href="#" target="_blank" className="text-blue-500 hover:underline">
+          {React.string("GitHub Repo")}
+        </a>
+      </div>
     </div>
-    <div>
-      <h2 className="text-2xl mb-2">{"Hexagon"->React.string}</h2>
-      <Figure>
+    <hr className="my-8 border-t-2 border-gray-300" />
+    <div className="grid grid-cols-2 gap-4">
+      <Figure caption="Parallelogram Map">
+        <Map mapType={Parallelogram} size={6} />
+      </Figure>
+      <Figure caption="Hexagon Map">
+        <Map mapType={Hexagon} size={6} />
+      </Figure>
+      <FigureWithControls caption="Hexagon Map">
         <Svg>
           <HexagonGrid size={6} />
         </Svg>
-      </Figure>
+      </FigureWithControls>
     </div>
   </div>
 }
