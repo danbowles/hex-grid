@@ -24,8 +24,13 @@ module Hexagon = {
     | _ => "fill-slate-50"
     }
 
-    let classNames = `stroke-slate-500 ${showColors ? hexFill : "fill-slate-50"}`
-    let classNames = `${classNames} ${active ? "fill-amber-100" : ""}`
+    let classNames = "stroke-slate-500"
+    let hexFill = switch (showColors, active) {
+    | (_, true) => "fill-amber-300"
+    | (true, false) => hexFill
+    | (false, _) => "fill-slate-50"
+    }
+    let classNames = `${classNames} ${hexFill}`
 
     <>
       <polygon className={classNames} points={Js.Array.joinWith(",", pointsString)} style={style} onMouseEnter onMouseLeave/>
@@ -82,8 +87,6 @@ module RectangularGrid = {
   let make = (~left, ~right, ~top, ~bottom) => {
     let (activeHex: option<Hex.t>, setActiveHex) = React.useState(_ => None)
     let (neighbors: array<Hex.t>, setNeighbors) = React.useState(_ => [])
-
-    Js.log2("neighbors", neighbors)
 
     React.useEffect1(() => {
       let hexNeighbors = switch activeHex {
