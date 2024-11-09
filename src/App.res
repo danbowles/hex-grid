@@ -7,7 +7,18 @@ open Svg
 
 module Hexagon = {
   @react.component
-  let make = (~layout: Layout.t, ~hex: Hex.t, ~showColors, ~showCoords, ~showDebugCircle, ~onMouseEnter, ~onMouseLeave, ~active=false) => {
+  let make = (
+    ~layout: Layout.t,
+    ~hex: Hex.t,
+    ~showColors,
+    ~showCoords,
+    ~showDebugCircle,
+    ~onMouseEnter,
+    ~onMouseLeave,
+    ~isActive=false,
+    ~isNeighborOfActive=false,
+    ~isNeighborOfNeighborOfActive=false,
+  ) => {
     let style = ReactDOM.Style.make(~strokeWidth="0.3", ())
     let {q, r, s} = hex
     let hexCorners = layout->Layout.polygonCorners(hex)
@@ -23,17 +34,24 @@ module Hexagon = {
     | (q, r, 0) if q != 0 && r != 0 => "fill-blue-100"
     | _ => "fill-slate-50"
     }
-
     let classNames = "stroke-slate-500"
-    let hexFill = switch (showColors, active) {
-    | (_, true) => "fill-amber-300"
-    | (true, false) => hexFill
-    | (false, _) => "fill-slate-50"
+    let hexFill = switch (showColors, isActive, isNeighborOfActive, isNeighborOfNeighborOfActive) {
+    | (_, true, _, _) => "fill-amber-300"
+    | (_, _, true, _) => "fill-amber-200"
+    | (_, _, _, true) => "fill-amber-100"
+    | (true, false, false, false) => hexFill
+    | (false, _, _, _) => "fill-slate-50"
     }
     let classNames = `${classNames} ${hexFill}`
 
     <>
-      <polygon className={classNames} points={Js.Array.joinWith(",", pointsString)} style={style} onMouseEnter onMouseLeave/>
+      <polygon
+        className={classNames}
+        points={Js.Array.joinWith(",", pointsString)}
+        style={style}
+        onMouseEnter
+        onMouseLeave
+      />
       <g>
         {showDebugCircle
           ? <circle cx={x->Float.toString} cy={y->Float.toString} r="1" className="fill-red-500" />
@@ -57,7 +75,16 @@ module HexagonGrid = {
     hexes
     ->Array.map(hex => {
       let key = hex->Hex.toString
-      <Hexagon key layout hex showColors showCoords showDebugCircle onMouseEnter={_ => ()} onMouseLeave={_=>()}/>
+      <Hexagon
+        key
+        layout
+        hex
+        showColors
+        showCoords
+        showDebugCircle
+        onMouseEnter={_ => ()}
+        onMouseLeave={_ => ()}
+      />
     })
     ->React.array
   }
@@ -76,7 +103,16 @@ module ParallelogramGrid = {
     hexes
     ->Array.map(hex => {
       let key = hex->Hex.toString
-      <Hexagon key layout hex showColors showCoords showDebugCircle onMouseEnter={_ => ()} onMouseLeave={_=>()}/>
+      <Hexagon
+        key
+        layout
+        hex
+        showColors
+        showCoords
+        showDebugCircle
+        onMouseEnter={_ => ()}
+        onMouseLeave={_ => ()}
+      />
     })
     ->React.array
   }
@@ -87,29 +123,47 @@ module RectangularGrid = {
   let make = (~left, ~right, ~top, ~bottom) => {
     let (activeHex: option<Hex.t>, setActiveHex) = React.useState(_ => None)
     let (neighbors: array<Hex.t>, setNeighbors) = React.useState(_ => [])
+    let (neighborNeighbors, setNeighborNeighbors) = React.useState(_ => [])
 
     React.useEffect1(() => {
-      let hexNeighbors = switch activeHex {
-      | None => []
-      | Some(hex) => hex->Hex.hexNeighbors
+      let (hexNeighbors, neighborNeighbors) = switch activeHex {
+      | None => ([], [])
+      | Some(hex) => {
+          // Todo: Some odd filtering bug happening here.
+          let neighbors = hex->Hex.hexNeighbors
+          // let neighborsAndActive = neighbors->Array.concat([hex])
+          let neighborNeighbors = neighbors->Array.flatMap(neighbor => neighbor->Hex.hexNeighbors)
+          if hex.q === 0 && hex.r === 0 && hex.s === 0 {
+            Js.log2("neighbors", neighbors)
+            Js.log2("neighborNeighbors", neighborNeighbors)
+          }
+          // Js.log2("neighborNeighbors", neighborNeighbors)
+          (neighbors, neighborNeighbors)
+          // (neighbors, neighborNeighbors->Array.filter(neighbor => neighborsAndActive->Array.includes(neighbor)))
+        }
       }
       setNeighbors(_ => hexNeighbors)
+      setNeighborNeighbors(_ => neighborNeighbors)
       None
     }, [activeHex])
+
+    // Js.log3(activeHex, neighbors->Array.map(hex => hex->Hex.toString), neighborNeighbors)
     let {showColors, showCoords, showDebugCircle} = ControlsContext.useContext()
     let rectangularMap = RectangularMap.make(~left, ~right, ~top, ~bottom)
     let size = Point.makeFloat(10.0, 10.0)
     let origin = Point.makeFloat(size.x, size.y *. Math.sqrt(3.0) /. 2.0)
     let layout = Layout.make(Orientation.pointy, size->Point.toInt, origin)
 
-    let hexes = RectangularMap.toArray(rectangularMap)
-    hexes
+    RectangularMap.toArray(rectangularMap)
     ->Array.map(hex => {
       let key = hex->Hex.toString
       let isActive = switch activeHex {
-        | Some(activeHex) => Hex.hexAreEqual(hex, activeHex)
-        | None => false
+      | Some(activeHex) => Hex.hexAreEqual(hex, activeHex)
+      | None => false
       }
+      let isNeighborOfActive = neighbors->Array.some(neighbor => Hex.hexAreEqual(neighbor, hex))
+      let isNeighborOfNeighborOfActive =
+        neighborNeighbors->Array.some(neighbor => Hex.hexAreEqual(neighbor, hex))
       <Hexagon
         key
         layout
@@ -119,7 +173,9 @@ module RectangularGrid = {
         showDebugCircle
         onMouseEnter={_ => setActiveHex(_ => Some(hex))}
         onMouseLeave={_ => setActiveHex(_ => None)}
-        active={isActive}
+        isActive
+        isNeighborOfActive
+        isNeighborOfNeighborOfActive
       />
     })
     ->React.array
