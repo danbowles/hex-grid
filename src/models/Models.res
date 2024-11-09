@@ -34,7 +34,7 @@ module Hex = {
     make(0, 1, -1),
   ]
 
-  let hexAreEqual = (a, b) => a.q == b.q && a.r == b.r && a.s == b.s
+  let hexAreEqual = (a: t, b: t) => a.q == b.q && a.r == b.r && a.s == b.s
 
   let hexAdd: (t, t) => t = (a, b) => {q: a.q + b.q, r: a.r + b.r, s: a.s + b.s}
 
@@ -56,6 +56,8 @@ module Hex = {
     | Some(hexDirection) => hexAdd(hex, hexDirection)
     | None => hex
     }
+
+  let hexNeighbors = hex => directions->Array.map(direction => hexAdd(hex, direction))
 
   let toFloat: t => tFloat = (hex: t) => {
     q: Float.parseInt(hex.q),
@@ -232,6 +234,30 @@ module ParallelogramMap = {
     | _ => makeLeftRight(-size, size, -size, size)
     }
 
+  }
+
+  let toArray = (map: t) => map.hashTable->Dict.valuesToArray
+}
+
+module RectangularMap = {
+  type t = {
+    hashTable: HexHashTable.t,
+  }
+
+  let make = (~left, ~right, ~top, ~bottom) => {
+    let hashTable = HexHashTable.make()
+    for r in top to bottom {
+      let rOffset = Math.floor(r->Float.parseInt /. 2.0)
+      let q1 = (left->Float.parseInt -. rOffset)->Int.fromFloat
+      let q2 = (right->Float.parseInt -. rOffset)->Int.fromFloat
+      for q in q1 to q2 {
+        let s = -q - r
+        let hex = Hex.make(q, r, s)
+        hashTable->HexHashTable.insert(hex)
+      }
+    }
+
+    {hashTable: hashTable}
   }
 
   let toArray = (map: t) => map.hashTable->Dict.valuesToArray
