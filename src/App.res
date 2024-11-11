@@ -129,17 +129,16 @@ module RectangularGrid = {
       let (hexNeighbors, neighborNeighbors) = switch activeHex {
       | None => ([], [])
       | Some(hex) => {
-          // Todo: Some odd filtering bug happening here.
           let neighbors = hex->Hex.hexNeighbors
-          // let neighborsAndActive = neighbors->Array.concat([hex])
           let neighborNeighbors = neighbors->Array.flatMap(neighbor => neighbor->Hex.hexNeighbors)
-          if hex.q === 0 && hex.r === 0 && hex.s === 0 {
-            Js.log2("neighbors", neighbors)
-            Js.log2("neighborNeighbors", neighborNeighbors)
-          }
-          // Js.log2("neighborNeighbors", neighborNeighbors)
+          let neighborsAndActive = neighbors->Array.concat([hex])
+          let neighborNeighbors = neighborNeighbors->Array.filter(nn => {
+            switch neighborsAndActive->Array.find(n => Hex.hexAreEqual(n, nn)) {
+            | Some(_) => false
+            | _ => true
+            }
+          })
           (neighbors, neighborNeighbors)
-          // (neighbors, neighborNeighbors->Array.filter(neighbor => neighborsAndActive->Array.includes(neighbor)))
         }
       }
       setNeighbors(_ => hexNeighbors)

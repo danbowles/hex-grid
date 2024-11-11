@@ -10,7 +10,8 @@
     "res:dev": "rescript -w",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "publish": "npm run build && git add dist -f && git commit -m 'pages' && git subtree push --prefix dist origin gh-pages"
   },
   "dependencies": {
     "@rescript/core": "^1.6.1",
