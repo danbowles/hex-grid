@@ -183,24 +183,56 @@ module RectangularGrid = {
 
 @react.component
 let make = () => {
-  <div className="w-full max-w-screen-xl mx-auto mt-8 mb-8 pl-5 pr-5">
-    <Header />
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <FigureWithControls caption="Parallelogram Map">
-        <Svg>
-          <ParallelogramGrid size={6} direction={ParallelogramMap.LeftRight} />
-        </Svg>
-      </FigureWithControls>
-      <FigureWithControls caption="Hexagon Map">
-        <Svg>
-          <HexagonGrid size={6} />
-        </Svg>
-      </FigureWithControls>
-      <FigureWithControls caption="Rectangular Map">
-        <Svg>
-          <RectangularGrid left={-5} right={5} top={-4} bottom={4} />
-        </Svg>
-      </FigureWithControls>
+  <>
+    // flex flex-col min-h-screen
+    <div className="flex flex-col min-h-screen w-full max-w-screen-xl mx-auto">
+      // <div className="w-full max-w-screen-xl mx-auto mt-8 mb-8 pl-5 pr-5">
+      <Header />
+      <main className="flex-grow p-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <FigureWithControls caption="Parallelogram Map">
+            <Svg>
+              <ParallelogramGrid size={6} direction={ParallelogramMap.LeftRight} />
+            </Svg>
+          </FigureWithControls>
+          <FigureWithControls caption="Hexagon Map">
+            <Svg>
+              <HexagonGrid size={6} />
+            </Svg>
+          </FigureWithControls>
+          <FigureWithControls caption="Rectangular Map">
+            <Svg>
+              <RectangularGrid left={-5} right={5} top={-4} bottom={4} />
+            </Svg>
+          </FigureWithControls>
+        </div>
+      </main>
+      <footer className="mt-5 pb-6">
+        <hr className="mb-6 border-b-1 border-blueGray-600" />
+        <div className="flex justify-center space-x-4">
+          <a
+            href="https://www.redblobgames.com/grids/hexagons/"
+            target="_blank"
+            className="text-blue-500 hover:underline">
+            {React.string("Reference")}
+          </a>
+          <a
+            href="https://rescript-lang.org/"
+            target="_blank"
+            className="text-blue-500 hover:underline">
+            {React.string("ReScript")}
+          </a>
+          <a href="https://reactjs.org/" target="_blank" className="text-blue-500 hover:underline">
+            {React.string("React")}
+          </a>
+          <a
+            href="https://github.com/danbowles/hex-grid"
+            target="_blank"
+            className="text-blue-500 hover:underline">
+            {React.string("GitHub Repo")}
+          </a>
+        </div>
+      </footer>
     </div>
-  </div>
+  </>
 }
