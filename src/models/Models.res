@@ -185,11 +185,21 @@ module HexHashTable = {
 module HexagonalMap = {
   type t = {
     hashTable: HexHashTable.t,
-    size: int
+    size: int,
   }
 
-  let min = (a, b) => if a < b {a} else {b}
-  let max = (a, b) => if a > b {a} else {b}
+  let min = (a, b) =>
+    if a < b {
+      a
+    } else {
+      b
+    }
+  let max = (a, b) =>
+    if a > b {
+      a
+    } else {
+      b
+    }
 
   let make = size => {
     let hashTable = HexHashTable.make()
@@ -203,7 +213,7 @@ module HexagonalMap = {
       }
     }
 
-    {hashTable: hashTable, size}
+    {hashTable, size}
   }
 
   let toArray = (map: t) => map.hashTable->Dict.valuesToArray
@@ -212,10 +222,8 @@ module ParallelogramMap = {
   type direction = LeftRight | TopBottom | RightLeft
   type t = {
     hashTable: HexHashTable.t,
-    direction: direction
+    direction: direction,
   }
-
-  
 
   let makeLeftRight = (q1, q2, r1, r2) => {
     let hashTable = HexHashTable.make()
@@ -227,22 +235,19 @@ module ParallelogramMap = {
       }
     }
 
-    {hashTable: hashTable, direction: LeftRight}
+    {hashTable, direction: LeftRight}
   }
   let make: (int, direction) => t = (size, direction) => {
     switch direction {
     | _ => makeLeftRight(-size, size, -size, size)
     }
-
   }
 
   let toArray = (map: t) => map.hashTable->Dict.valuesToArray
 }
 
 module RectangularMap = {
-  type t = {
-    hashTable: HexHashTable.t,
-  }
+  type t = {hashTable: HexHashTable.t}
 
   let make = (~left, ~right, ~top, ~bottom) => {
     let hashTable = HexHashTable.make()
