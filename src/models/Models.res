@@ -267,3 +267,22 @@ module RectangularMap = {
 
   let toArray = (map: t) => map.hashTable->Dict.valuesToArray
 }
+
+module TriangularMap = {
+  type t = {hashTable: HexHashTable.t}
+
+  let make = size => {
+    let hashTable = HexHashTable.make()
+    for q in 0 to size {
+      for r in 0 to size - q {
+        let s = -q - r
+        let hex = Hex.make(q, r, s)
+        hashTable->HexHashTable.insert(hex)
+      }
+    }
+
+    {hashTable: hashTable}
+  }
+
+  let toArray = (map: t) => map.hashTable->Dict.valuesToArray
+}

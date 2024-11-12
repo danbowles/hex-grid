@@ -24,29 +24,13 @@ module MapControlState = {
     showColors: true,
     showDebugCircle: false,
     showCoords: true,
-    highlightNeighbors: false,
+    highlightNeighbors: true,
   }
 }
 
 let useToggleReducer = () => {
   let (state, dispatch) = React.useReducer(MapControlState.reducer, MapControlState.empty())
   (state, dispatch)
-}
-
-module Figure = {
-  @react.component
-  let make = (~caption=?, ~children) => {
-    <figure>
-      {switch caption {
-      | Some(caption) =>
-        <figcaption className="text-2xl font-mono font-bold mb-3 text-gray-500">
-          {caption->React.string}
-        </figcaption>
-      | None => <> </>
-      }}
-      <div className="border-4 border-indigo-200 rounded-lg mb-6"> {children} </div>
-    </figure>
-  }
 }
 
 module ControlsContext = {

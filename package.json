@@ -14,6 +14,8 @@
     "publish": "npm run build && git add dist -f && git commit -m 'pages' && git subtree push --prefix dist origin gh-pages"
   },
   "dependencies": {
+    "@heroicons/react": "^2.1.5",
+    "@kaiko.io/rescript-heroicons-react": "^3.0.0-rc.1",
     "@rescript/core": "^1.6.1",
     "@rescript/react": "^0.12.1",
     "react": "^18.2.0",

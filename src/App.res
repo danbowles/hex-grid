@@ -63,29 +63,80 @@ module Hexagon = {
   }
 }
 
+let useNestedNeighbors = (activeHex: option<Hex.t>) => {
+  let (hexNeighbors, neighborNeighbors) = switch activeHex {
+  | None => ([], [])
+  | Some(hex) => {
+      let neighbors = hex->Hex.hexNeighbors
+      let neighborNeighbors = neighbors->Array.flatMap(neighbor => neighbor->Hex.hexNeighbors)
+      let neighborsAndActive = neighbors->Array.concat([hex])
+      let neighborNeighbors = neighborNeighbors->Array.filter(nn => {
+        switch neighborsAndActive->Array.find(n => Hex.hexAreEqual(n, nn)) {
+        | Some(_) => false
+        | _ => true
+        }
+      })
+      (neighbors, neighborNeighbors)
+    }
+  }
+  (hexNeighbors, neighborNeighbors)
+}
+
+let renderHex = (
+  ~hex,
+  ~activeHex,
+  ~neighbors,
+  ~neighborNeighbors,
+  ~layout,
+  ~controlState: MapControlState.state,
+  ~setActiveHex,
+) => {
+  let {showColors, showCoords, showDebugCircle} = controlState
+  let key = hex->Hex.toString
+  let isActive = switch activeHex {
+  | Some(activeHex) => Hex.hexAreEqual(hex, activeHex)
+  | None => false
+  }
+  let isNeighborOfActive = neighbors->Array.some(neighbor => Hex.hexAreEqual(neighbor, hex))
+  let isNeighborOfNeighborOfActive =
+    neighborNeighbors->Array.some(neighbor => Hex.hexAreEqual(neighbor, hex))
+  let onMouseEnter = controlState.highlightNeighbors ? _ => setActiveHex(_ => Some(hex)) : _ => ()
+  let onMouseLeave = controlState.highlightNeighbors ? _ => setActiveHex(_ => None) : _ => ()
+  <Hexagon
+    key
+    layout
+    hex
+    showColors
+    showCoords
+    showDebugCircle
+    onMouseEnter
+    onMouseLeave
+    isActive
+    isNeighborOfActive
+    isNeighborOfNeighborOfActive
+  />
+}
+
 module HexagonGrid = {
   @react.component
   let make = (~size) => {
-    let {showColors, showCoords, showDebugCircle} = ControlsContext.useContext()
-    let hexMap = HexagonalMap.make(size)
-    let size = Point.makeFloat(10.0, 10.0)
-    let origin = Point.makeFloat(size.x, size.y *. Math.sqrt(3.0) /. 2.0)
-    let layout = Layout.make(Orientation.pointy, size->Point.toInt, origin)
+    let controlState = ControlsContext.useContext()
+    let layout = LayoutContext.useContext()
+    let (activeHex: option<Hex.t>, setActiveHex) = React.useState(_ => None)
+    let (neighbors, neighborNeighbors) = useNestedNeighbors(activeHex)
 
-    let hexes = HexagonalMap.toArray(hexMap)
-    hexes
+    HexagonalMap.make(size)
+    ->HexagonalMap.toArray
     ->Array.map(hex => {
-      let key = hex->Hex.toString
-      <Hexagon
-        key
-        layout
-        hex
-        showColors
-        showCoords
-        showDebugCircle
-        onMouseEnter={_ => ()}
-        onMouseLeave={_ => ()}
-      />
+      renderHex(
+        ~hex,
+        ~activeHex,
+        ~neighbors,
+        ~neighborNeighbors,
+        ~layout,
+        ~controlState,
+        ~setActiveHex,
+      )
     })
     ->React.array
   }
@@ -94,24 +145,23 @@ module HexagonGrid = {
 module ParallelogramGrid = {
   @react.component
   let make = (~size, ~direction: ParallelogramMap.direction) => {
-    let {showColors, showCoords, showDebugCircle} = ControlsContext.useContext()
+    let controlState = ControlsContext.useContext()
     let layout = LayoutContext.useContext()
-    let parallelogramMap = ParallelogramMap.make(size, direction)
+    let (activeHex: option<Hex.t>, setActiveHex) = React.useState(_ => None)
+    let (neighbors, neighborNeighbors) = useNestedNeighbors(activeHex)
 
-    let hexes = ParallelogramMap.toArray(parallelogramMap)
-    hexes
+    ParallelogramMap.make(size, direction)
+    ->ParallelogramMap.toArray
     ->Array.map(hex => {
-      let key = hex->Hex.toString
-      <Hexagon
-        key
-        layout
-        hex
-        showColors
-        showCoords
-        showDebugCircle
-        onMouseEnter={_ => ()}
-        onMouseLeave={_ => ()}
-      />
+      renderHex(
+        ~hex,
+        ~activeHex,
+        ~neighbors,
+        ~neighborNeighbors,
+        ~layout,
+        ~controlState,
+        ~setActiveHex,
+      )
     })
     ->React.array
   }
@@ -120,60 +170,48 @@ module ParallelogramGrid = {
 module RectangularGrid = {
   @react.component
   let make = (~left, ~right, ~top, ~bottom) => {
+    let controlState = ControlsContext.useContext()
+    let layout = LayoutContext.useContext()
     let (activeHex: option<Hex.t>, setActiveHex) = React.useState(_ => None)
-    let (neighbors: array<Hex.t>, setNeighbors) = React.useState(_ => [])
-    let (neighborNeighbors, setNeighborNeighbors) = React.useState(_ => [])
+    let (neighbors, neighborNeighbors) = useNestedNeighbors(activeHex)
 
-    React.useEffect1(() => {
-      let (hexNeighbors, neighborNeighbors) = switch activeHex {
-      | None => ([], [])
-      | Some(hex) => {
-          let neighbors = hex->Hex.hexNeighbors
-          let neighborNeighbors = neighbors->Array.flatMap(neighbor => neighbor->Hex.hexNeighbors)
-          let neighborsAndActive = neighbors->Array.concat([hex])
-          let neighborNeighbors = neighborNeighbors->Array.filter(nn => {
-            switch neighborsAndActive->Array.find(n => Hex.hexAreEqual(n, nn)) {
-            | Some(_) => false
-            | _ => true
-            }
-          })
-          (neighbors, neighborNeighbors)
-        }
-      }
-      setNeighbors(_ => hexNeighbors)
-      setNeighborNeighbors(_ => neighborNeighbors)
-      None
-    }, [activeHex])
-
-    let {showColors, showCoords, showDebugCircle} = ControlsContext.useContext()
-    let rectangularMap = RectangularMap.make(~left, ~right, ~top, ~bottom)
-    let size = Point.makeFloat(10.0, 10.0)
-    let origin = Point.makeFloat(size.x, size.y *. Math.sqrt(3.0) /. 2.0)
-    let layout = Layout.make(Orientation.pointy, size->Point.toInt, origin)
-
-    RectangularMap.toArray(rectangularMap)
+    RectangularMap.make(~left, ~right, ~top, ~bottom)
+    ->RectangularMap.toArray
     ->Array.map(hex => {
-      let key = hex->Hex.toString
-      let isActive = switch activeHex {
-      | Some(activeHex) => Hex.hexAreEqual(hex, activeHex)
-      | None => false
-      }
-      let isNeighborOfActive = neighbors->Array.some(neighbor => Hex.hexAreEqual(neighbor, hex))
-      let isNeighborOfNeighborOfActive =
-        neighborNeighbors->Array.some(neighbor => Hex.hexAreEqual(neighbor, hex))
-      <Hexagon
-        key
-        layout
-        hex
-        showColors
-        showCoords
-        showDebugCircle
-        onMouseEnter={_ => setActiveHex(_ => Some(hex))}
-        onMouseLeave={_ => setActiveHex(_ => None)}
-        isActive
-        isNeighborOfActive
-        isNeighborOfNeighborOfActive
-      />
+      renderHex(
+        ~hex,
+        ~activeHex,
+        ~neighbors,
+        ~neighborNeighbors,
+        ~layout,
+        ~controlState,
+        ~setActiveHex,
+      )
+    })
+    ->React.array
+  }
+}
+
+module TriangularGrid = {
+  @react.component
+  let make = (~size) => {
+    let controlState = ControlsContext.useContext()
+    let layout = LayoutContext.useContext()
+    let (activeHex: option<Hex.t>, setActiveHex) = React.useState(_ => None)
+    let (neighbors, neighborNeighbors) = useNestedNeighbors(activeHex)
+
+    TriangularMap.make(size)
+    ->TriangularMap.toArray
+    ->Array.map(hex => {
+      renderHex(
+        ~hex,
+        ~activeHex,
+        ~neighbors,
+        ~neighborNeighbors,
+        ~layout,
+        ~controlState,
+        ~setActiveHex,
+      )
     })
     ->React.array
   }
@@ -184,6 +222,16 @@ let make = () => {
   <>
     <div className="flex flex-col min-h-screen w-full max-w-screen-xl mx-auto">
       <Header />
+      <div className="px-4 mt-3">
+        <p className="md:hidden">
+          <HeroIcons.Solid.DevicePhoneMobileIcon className="h-6 w-6 mr-2 inline-block" />
+          {"Tap for 'Neighbors' Highlight"->React.string}
+        </p>
+        <p className="hidden md:block">
+          <HeroIcons.Solid.ComputerDesktopIcon className="h-6 w-6 mr-2 inline-block" />
+          {"Hover for 'Neighbors' Highlight"->React.string}
+        </p>
+      </div>
       <main className="flex-grow p-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FigureWithControls caption="Parallelogram Map">
@@ -199,6 +247,11 @@ let make = () => {
           <FigureWithControls caption="Rectangular Map">
             <Svg>
               <RectangularGrid left={-5} right={5} top={-4} bottom={4} />
+            </Svg>
+          </FigureWithControls>
+          <FigureWithControls caption="Triangular Map">
+            <Svg>
+              <TriangularGrid size={8} />
             </Svg>
           </FigureWithControls>
         </div>
