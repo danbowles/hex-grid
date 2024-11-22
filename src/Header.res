@@ -24,19 +24,13 @@ module Header = {
       <div className=navClasses>
         <ul className="flex flex-col ml-auto lg:ml-0 lg:flex-row lg:space-x-4">
           <li>
-            <a href="#" className="block text-gray-800 hover:text-gray-600">
-              {"Todo 1"->React.string}
-            </a>
+            <Router.Link route=Route.Home> {"Home"->React.string} </Router.Link>
           </li>
           <li>
-            <a href="#" className="block text-gray-800 hover:text-gray-600">
-              {"Todo 2"->React.string}
-            </a>
+            <Router.Link route=Route.MapMaker> {"Map Maker"->React.string} </Router.Link>
           </li>
           <li>
-            <a href="#" className="block text-gray-800 hover:text-gray-600">
-              {"Todo 3"->React.string}
-            </a>
+            <Router.Link route=Route.About> {"About"->React.string} </Router.Link>
           </li>
         </ul>
       </div>

@@ -219,9 +219,17 @@ module TriangularGrid = {
 
 @react.component
 let make = () => {
+  let route = Router.useRouter()
+
+  let stringRoute = switch route {
+  | Some(route) => route->Route.toString
+  | None => "Not found"
+  }
+
   <>
     <div className="flex flex-col min-h-screen w-full max-w-screen-xl mx-auto">
       <Header />
+      <p className="text-lg text-center mt-4"> {stringRoute->React.string} </p>
       <div className="px-4 mt-3">
         <p className="md:hidden">
           <HeroIcons.Solid.DevicePhoneMobileIcon className="h-6 w-6 mr-2 inline-block" />
