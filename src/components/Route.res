@@ -4,14 +4,14 @@ let baseUrl = "/hex-grid"
 let buildUrl = (path: string) => baseUrl ++ path
 
 type t =
-  | Home
+  | MapShapes
   | MapMaker
   | About
 
 let fromUrl = (url: RescriptReactRouter.url) => {
   switch url.path {
-  | list{"hex-grid"} => Home->Some
-  | list{"hex-grid", "map"} => MapMaker->Some
+  | list{_} => MapShapes->Some
+  | list{_, "map"} => MapMaker->Some
   | list{"hex-grid", "about"} => About->Some
   | _ => None
   }
@@ -19,7 +19,7 @@ let fromUrl = (url: RescriptReactRouter.url) => {
 
 let toString = x =>
   switch x {
-  | Home => buildUrl("/")
+  | MapShapes => buildUrl("/")
   | MapMaker => buildUrl("/map")
   | About => buildUrl("/about")
   }

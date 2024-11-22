@@ -217,54 +217,84 @@ module TriangularGrid = {
   }
 }
 
+module NotFound = {
+  @react.component
+  let make = () =>
+    <div className="flex flex-col items-center justify-center h-screen">
+      <h1 className="text-4xl font-bold"> {"404 - Not Found"->React.string} </h1>
+      <p className="text-lg"> {"The page you are looking for does not exist"->React.string} </p>
+    </div>
+}
+
+module MapShapes = {
+  @react.component
+  let make = () => <>
+    <div className="mb-3">
+      <p className="md:hidden">
+        <HeroIcons.Solid.DevicePhoneMobileIcon className="h-6 w-6 mr-2 inline-block" />
+        {"Tap for 'Neighbors' Highlight"->React.string}
+      </p>
+      <p className="hidden md:block">
+        <HeroIcons.Solid.ComputerDesktopIcon className="h-6 w-6 mr-2 inline-block" />
+        {"Hover for 'Neighbors' Highlight"->React.string}
+      </p>
+    </div>
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <FigureWithControls caption="Parallelogram Map">
+        <Svg>
+          <ParallelogramGrid size={4} direction={ParallelogramMap.LeftRight} />
+        </Svg>
+      </FigureWithControls>
+      <FigureWithControls caption="Hexagon Map">
+        <Svg>
+          <HexagonGrid size={6} />
+        </Svg>
+      </FigureWithControls>
+      <FigureWithControls caption="Rectangular Map">
+        <Svg>
+          <RectangularGrid left={-5} right={5} top={-4} bottom={4} />
+        </Svg>
+      </FigureWithControls>
+      <FigureWithControls caption="Triangular Map">
+        <Svg>
+          <TriangularGrid size={8} />
+        </Svg>
+      </FigureWithControls>
+    </div>
+  </>
+}
+
+module MapMaker = {
+  @react.component
+  let make = () =>
+    <div className="flex flex-col items-center justify-center h-screen">
+      <h1 className="text-4xl font-bold"> {"Map Maker"->React.string} </h1>
+      <p className="text-lg"> {"Create your own maps"->React.string} </p>
+    </div>
+}
+
+module About = {
+  @react.component
+  let make = () =>
+    <div className="flex flex-col items-center justify-center h-screen">
+      <h1 className="text-4xl font-bold"> {"About"->React.string} </h1>
+      <p className="text-lg"> {"Learn more about Hexagon Grid Creator"->React.string} </p>
+    </div>
+}
+
 @react.component
 let make = () => {
   let route = Router.useRouter()
-
-  let stringRoute = switch route {
-  | Some(route) => route->Route.toString
-  | None => "Not found"
-  }
-
-  <>
-    <div className="flex flex-col min-h-screen w-full max-w-screen-xl mx-auto">
-      <Header />
-      <p className="text-lg text-center mt-4"> {stringRoute->React.string} </p>
-      <div className="px-4 mt-3">
-        <p className="md:hidden">
-          <HeroIcons.Solid.DevicePhoneMobileIcon className="h-6 w-6 mr-2 inline-block" />
-          {"Tap for 'Neighbors' Highlight"->React.string}
-        </p>
-        <p className="hidden md:block">
-          <HeroIcons.Solid.ComputerDesktopIcon className="h-6 w-6 mr-2 inline-block" />
-          {"Hover for 'Neighbors' Highlight"->React.string}
-        </p>
-      </div>
-      <main className="flex-grow p-4">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FigureWithControls caption="Parallelogram Map">
-            <Svg>
-              <ParallelogramGrid size={4} direction={ParallelogramMap.LeftRight} />
-            </Svg>
-          </FigureWithControls>
-          <FigureWithControls caption="Hexagon Map">
-            <Svg>
-              <HexagonGrid size={6} />
-            </Svg>
-          </FigureWithControls>
-          <FigureWithControls caption="Rectangular Map">
-            <Svg>
-              <RectangularGrid left={-5} right={5} top={-4} bottom={4} />
-            </Svg>
-          </FigureWithControls>
-          <FigureWithControls caption="Triangular Map">
-            <Svg>
-              <TriangularGrid size={8} />
-            </Svg>
-          </FigureWithControls>
-        </div>
-      </main>
-      <Footer />
-    </div>
-  </>
+  <div className="flex flex-col min-h-screen w-full max-w-screen-xl mx-auto">
+    <Header />
+    <main className="flex-grow p-4">
+      {switch route {
+      | Some(MapShapes) => <MapShapes />
+      | Some(MapMaker) => <MapMaker />
+      | Some(About) => <About />
+      | None => <NotFound />
+      }}
+    </main>
+    <Footer />
+  </div>
 }

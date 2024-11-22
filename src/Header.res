@@ -24,7 +24,7 @@ module Header = {
       <div className=navClasses>
         <ul className="flex flex-col ml-auto lg:ml-0 lg:flex-row lg:space-x-4">
           <li>
-            <Router.Link route=Route.Home> {"Home"->React.string} </Router.Link>
+            <Router.Link route=Route.MapShapes> {"Map Shapes"->React.string} </Router.Link>
           </li>
           <li>
             <Router.Link route=Route.MapMaker> {"Map Maker"->React.string} </Router.Link>
