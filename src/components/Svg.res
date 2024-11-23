@@ -7,25 +7,57 @@ type svgRect = {
 @send external getBBox: Dom.element => svgRect = "getBBox"
 
 module Svg = {
+  module DrawingContext = {
+    let context = React.createContext(false)
+
+    let useContext = () => React.useContext(context)
+
+    module Provider = {
+      let provider = React.Context.provider(context)
+      @react.component
+      let make = (~value, ~children) => {
+        React.createElement(provider, {value, children})
+      }
+    }
+  }
   module Group = {
     @react.component
     let make = (~children, ~setGroupRef=?) => {
       let (canDraw, setCanDraw) = React.useState(_ => false)
+      let (drawing, setDrawing) = React.useState(_ => false)
       let setGroupRef = element => {
         switch setGroupRef {
         | Some(setGroupRef) => setGroupRef(element)
         | None => ()
         }
       }
+      // Set CanDraw
       let handleMouseEnter = _ => setCanDraw(_ => true)
-      let handleMouseLeave = _ => setCanDraw(_ => false)
+      let handleMouseLeave = _ => {
+        setCanDraw(_ => false)
+        setDrawing(_ => false)
+      }
 
-      <g
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        ref={ReactDOM.Ref.callbackDomRef(setGroupRef)}>
-        {children}
-      </g>
+      let handleMouseDown = e => {
+        e->ReactEvent.Mouse.preventDefault
+        setDrawing(_ => canDraw && true)
+      }
+      let handleMouseUp = _ => setDrawing(_ => false)
+      let handleMouseMove = e => {
+        e->ReactEvent.Mouse.preventDefault
+      }
+
+      <DrawingContext.Provider value=drawing>
+        <g
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+          ref={ReactDOM.Ref.callbackDomRef(setGroupRef)}>
+          {children}
+        </g>
+      </DrawingContext.Provider>
     }
   }
   @react.component

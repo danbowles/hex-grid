@@ -14,6 +14,25 @@ module Point = {
   let makeFloat: (float, float) => tFloat = (x, y) => {x, y}
 }
 
+module Terrain = {
+  type kind = Grass | Water | Sand | Mountain
+  type t = {name: string, color: string}
+
+  let make = (name, color) => {name, color}
+
+  let kindToString = kind =>
+    switch kind {
+    | Grass => "Grass"
+    | Water => "Water"
+    | Sand => "Sand"
+    | Mountain => "Mountain"
+    }
+
+  let grass = make("Grass", "#4CAF50")
+  let water = make("Water", "#2196F3")
+  let sand = make("Sand", "#FFC107")
+  let mountain = make("Mountain", "#795548")
+}
 module Hex = {
   type t = {q: int, r: int, s: int}
   type tFloat = {q: float, r: float, s: float}
@@ -285,4 +304,55 @@ module TriangularMap = {
   }
 
   let toArray = (map: t) => map.hashTable->Dict.valuesToArray
+}
+
+module TerrainMap = {
+  module HexWithTerrain = {
+    type t = {hex: Hex.t, terrain: Terrain.t}
+  }
+  module TerrainMapHashTable = {
+    type t = Dict.t<HexWithTerrain.t>
+
+    let make = () => Dict.make()
+    let hash: Hex.t => string = hex => {
+      let {q, r} = hex
+      let key = `${q->Int.toString},${r->Int.toString}`
+      key
+    }
+
+    let insert = (map: t, hex: Hex.t, terrain: Terrain.t) =>
+      Dict.set(map, hex->hash, {hex, terrain})
+    let get = (map, hex) => Dict.get(map, hex->hash)
+    let remove = (map, hex) => Dict.delete(map, hex->hash)
+  }
+
+  type t = {
+    hashTable: TerrainMapHashTable.t,
+    // size: int,
+  }
+
+  let make = (~height: int, ~width: int) => {
+    let hashTable = TerrainMapHashTable.make()
+    let (left, right) = (-width / 2, width / 2)
+    let (top, bottom) = (-height / 2, height / 2)
+    for r in top to bottom {
+      let rOffset = Math.floor(r->Float.parseInt /. 2.0)
+      let q1 = (left->Float.parseInt -. rOffset)->Int.fromFloat
+      let q2 = (right->Float.parseInt -. rOffset)->Int.fromFloat
+      for q in q1 to q2 {
+        let s = -q - r
+        let hex = Hex.make(q, r, s)
+        let terrain = switch (q, r) {
+        | (0, 0) => Terrain.grass
+        | (0, 1) => Terrain.water
+        | (1, 0) => Terrain.sand
+        | (1, 1) => Terrain.mountain
+        | _ => Terrain.grass
+        }
+        hashTable->TerrainMapHashTable.insert(hex, terrain)
+      }
+    }
+
+    {hashTable: hashTable}
+  }
 }
