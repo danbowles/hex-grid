@@ -265,12 +265,37 @@ module MapShapes = {
 }
 
 module MapMaker = {
+  module EmptyGrid = {
+    @react.component
+    let make = (~left, ~right, ~top, ~bottom) => {
+      let layout = LayoutContext.useContext()
+
+      RectangularMap.make(~left, ~right, ~top, ~bottom)
+      ->RectangularMap.toArray
+      ->Array.map(hex => {
+        let style = ReactDOM.Style.make(~strokeWidth="0.3", ())
+        let hexCorners = layout->Layout.polygonCorners(hex)
+        let pointsString = Js.Array.map(
+          (p: Point.tFloat) => `${p.x->Float.toString},${p.y->Float.toString}`,
+          hexCorners,
+        )
+        <polygon
+          className="stroke-slate-500 fill-slate-50"
+          points={Js.Array.joinWith(",", pointsString)}
+          style={style}
+        />
+      })
+      ->React.array
+    }
+  }
+
   @react.component
   let make = () =>
-    <div className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-4xl font-bold"> {"Map Maker"->React.string} </h1>
-      <p className="text-lg"> {"Create your own maps"->React.string} </p>
-    </div>
+    <MapMakerFigure>
+      <Svg>
+        <EmptyGrid left={-6} right={6} top={-4} bottom={4} />
+      </Svg>
+    </MapMakerFigure>
 }
 
 module About = {

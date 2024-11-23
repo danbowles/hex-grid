@@ -4,41 +4,50 @@ type svgRect = {
   width: float,
   height: float,
 }
-@send external getBBox: (Dom.element) => svgRect = "getBBox"
+@send external getBBox: Dom.element => svgRect = "getBBox"
 
 module Svg = {
   module Group = {
-  @react.component
-  let make = (~children, ~setGroupRef=?) => {
-    let setGroupRef = element => {
-    switch setGroupRef {
-    | Some(setGroupRef) => setGroupRef(element)
-    | None => ()
+    @react.component
+    let make = (~children, ~setGroupRef=?) => {
+      let (canDraw, setCanDraw) = React.useState(_ => false)
+      let setGroupRef = element => {
+        switch setGroupRef {
+        | Some(setGroupRef) => setGroupRef(element)
+        | None => ()
+        }
+      }
+      let handleMouseEnter = _ => setCanDraw(_ => true)
+      let handleMouseLeave = _ => setCanDraw(_ => false)
+
+      <g
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        ref={ReactDOM.Ref.callbackDomRef(setGroupRef)}>
+        {children}
+      </g>
     }
   }
-    <g ref={ReactDOM.Ref.callbackDomRef(setGroupRef)}>
-      {children}
-    </g>
-  }
-}
   @react.component
   let make = (~children) => {
     let innerPadding = 2.0
     let (viewBox, setViewBox) = React.useState(() => "-80 -60 200 200")
-  let handleGroupRef = el => {
-    switch el->Nullable.toOption {
-    | Some(el) => {
-      let {x, y, width, height} = el->getBBox
-      // Oof.  Likely a better way to do this.
-      setViewBox(_ => `${(x-.innerPadding)->Float.toString} ${(y-.innerPadding)->Float.toString} ${(width+.(innerPadding*.2.0))->Float.toString}  ${(height+.(innerPadding*.2.0))->Float.toString}`)
+    let handleGroupRef = el => {
+      switch el->Nullable.toOption {
+      | Some(el) => {
+          let {x, y, width, height} = el->getBBox
+          // Oof.  Likely a better way to do this.
+          setViewBox(_ =>
+            `${(x -. innerPadding)->Float.toString} ${(y -. innerPadding)
+                ->Float.toString} ${(width +. innerPadding *. 2.0)->Float.toString}  ${(height +.
+              innerPadding *. 2.0)->Float.toString}`
+          )
+        }
+      | None => ()
+      }
     }
-    | None => ()
-    }
-  }
     <svg viewBox>
-      <Group setGroupRef={handleGroupRef}>
-      {children}
-      </Group>
+      <Group setGroupRef={handleGroupRef}> {children} </Group>
     </svg>
   }
 }

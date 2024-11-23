@@ -64,6 +64,41 @@ module LayoutContext = {
   }
 }
 
+module MapMakerFigure = {
+  @react.component
+  let make = (~caption=?, ~children) => {
+    let buttonStyles = [
+      ("Water", "bg-blue-500 text-white"),
+      ("Sand", "bg-yellow-500 text-black"),
+      ("Mountains", "bg-gray-700 text-white"),
+      ("Grass", "bg-green-500 text-white"),
+    ]
+    // let (canDraw, _) = CanDrawContext.useContext()
+    <figure>
+      {switch caption {
+      | Some(caption) =>
+        <figcaption className="text-xl font-mono font-bold p-4">
+          {caption->React.string}
+        </figcaption>
+      | None => <> </>
+      }}
+      <LayoutContext.Provider value={LayoutContext.layout}>
+        <div className="flex space-x-2">
+          {buttonStyles
+          ->Array.map(((label, className)) =>
+            <button className={className ++ " p-2 rounded"}> {label->React.string} </button>
+          )
+          ->React.array}
+          <span className="text-gray-800 text-sm">
+            // {canDraw ? "Drawing"->React.string : "Not Drawing"->React.string}
+          </span>
+        </div>
+        {children}
+      </LayoutContext.Provider>
+    </figure>
+  }
+}
+
 module FigureWithControls = {
   @react.component
   let make = (~caption=?, ~children) => {
