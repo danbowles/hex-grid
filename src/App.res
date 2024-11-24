@@ -41,26 +41,6 @@ module MapMaker = {
         />
       })
       ->React.array
-
-      // RectangularMap.make(~left, ~right, ~top, ~bottom)
-      // ->RectangularMap.toArray
-      // ->Array.map(hex => {
-      //   let key = hex->Hex.toString
-      //   let style = ReactDOM.Style.make(~strokeWidth="0.3", ())
-      //   let hexCorners = layout->Layout.polygonCorners(hex)
-      //   let pointsString = Js.Array.map(
-      //     (p: Point.tFloat) => `${p.x->Float.toString},${p.y->Float.toString}`,
-      //     hexCorners,
-      //   )
-      //   <polygon
-      //     onMouseEnter={handleMouseEnter}
-      //     key
-      //     className="stroke-slate-500 fill-slate-50"
-      //     points={Js.Array.joinWith(",", pointsString)}
-      //     style={style}
-      //   />
-      // })
-      // ->React.array
     }
   }
 
