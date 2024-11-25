@@ -16,7 +16,7 @@ module Point = {
 
 module Terrain = {
   type kind = Grass | Water | Sand | Mountain | Clear
-  type t = {name: kind, fillColor: string, bgColor: string, textColor: string}
+  type t = {kind: kind, fillColor: string, bgColor: string, textColor: string}
 
   let getTextColor = kind =>
     switch kind {
@@ -52,11 +52,11 @@ module Terrain = {
     | Clear => "Clear"
     }
 
-  let make = name => {
-    name,
-    fillColor: getFillColor(name),
-    textColor: getTextColor(name),
-    bgColor: getBgColor(name),
+  let make = kind => {
+    kind,
+    fillColor: getFillColor(kind),
+    textColor: getTextColor(kind),
+    bgColor: getBgColor(kind),
   }
 }
 module Hex = {
@@ -350,10 +350,10 @@ module TerrainMap = {
       Dict.set(map, hex->hash, {hex, terrain})
     let get = (map, hex) => Dict.get(map, hex->hash)
     let remove = (map, hex) => Dict.delete(map, hex->hash)
-    let updateTerrain = (map, hex, terrain) => {
+    let updateTerrain = (map, hex, terrainKind) => {
       switch map->get(hex) {
       | Some(_) => {
-          insert(map, hex, terrain)
+          insert(map, hex, Terrain.make(terrainKind))
           map
         }
       | None => map

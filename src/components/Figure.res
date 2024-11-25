@@ -1,4 +1,5 @@
 open Models
+open Svg
 
 module MapControlState = {
   let name = "MapControlState"
@@ -64,31 +65,83 @@ module LayoutContext = {
   }
 }
 
+module EmptyGrid = {
+  @react.component
+  let make = (~terrainMap: TerrainMap.t, ~onDrawTerrain) => {
+    let drawing = Svg.DrawingContext.useContext()
+    let layout = LayoutContext.useContext()
+
+    let handleMouseEnter = hex => {
+      if drawing {
+        onDrawTerrain(hex)
+      }
+    }
+
+    terrainMap.hashTable
+    ->Dict.valuesToArray
+    ->Array.map(hexWithTerrain => {
+      let key = hexWithTerrain.hex->Hex.toString
+      let style = ReactDOM.Style.make(~strokeWidth="0.1", ())
+      let hexCorners = layout->Layout.polygonCorners(hexWithTerrain.hex)
+      let pointsString = Js.Array.map(
+        (p: Point.tFloat) => `${p.x->Float.toString},${p.y->Float.toString}`,
+        hexCorners,
+      )
+      <polygon
+        onMouseEnter={_ => handleMouseEnter(hexWithTerrain.hex)}
+        key
+        className={`stroke-slate-900 ${hexWithTerrain.terrain.fillColor}`}
+        points={Js.Array.joinWith(",", pointsString)}
+        style={style}
+      />
+    })
+    ->React.array
+  }
+}
+
 module MapMakerFigure = {
   @react.component
-  let make = (~caption=?, ~children) => {
-    let terrains: array<Terrain.kind> = [Water, Grass, Mountain, Sand]
+  let make = () => {
+    let terrains: array<Terrain.kind> = [Water, Grass, Mountain, Sand, Clear]
+    let (activeTerrain: option<Terrain.kind>, setActiveTerrain) = React.useState(() =>
+      terrains->Array.get(0)
+    )
+    let (terrainMap, setTerrainMap) = React.useState(() => TerrainMap.make(~height=8, ~width=10))
+
+    let onDrawTerrain = hex => {
+      setTerrainMap(_ => {
+        let table = switch activeTerrain {
+        | Some(terrain) =>
+          terrainMap.hashTable->TerrainMap.TerrainMapHashTable.updateTerrain(hex, terrain)
+        | None => terrainMap.hashTable->TerrainMap.TerrainMapHashTable.updateTerrain(hex, Clear)
+        }
+
+        {hashTable: table}
+      })
+    }
     <figure>
-      {switch caption {
-      | Some(caption) =>
-        <figcaption className="text-xl font-mono font-bold p-4">
-          {caption->React.string}
-        </figcaption>
-      | None => <> </>
-      }}
       <LayoutContext.Provider value={LayoutContext.layout}>
         <div className="flex space-x-2">
           {terrains
           ->Array.map(Terrain.make)
           ->Array.map(terrain =>
             <button
-              className={[terrain.bgColor, terrain.textColor, "p-2 rounded"]->Array.join(" ")}>
-              {terrain.name->Terrain.kindToString->React.string}
+              key={terrain.kind->Terrain.kindToString}
+              onClick={_ => setActiveTerrain(_ => Some(terrain.kind))}
+              className={[
+                Some(terrain.kind) === activeTerrain ? "" : "opacity-50",
+                terrain.bgColor,
+                terrain.textColor,
+                "p-2  border-black border",
+              ]->Array.join(" ")}>
+              {terrain.kind->Terrain.kindToString->React.string}
             </button>
           )
           ->React.array}
         </div>
-        {children}
+        <Svg>
+          <EmptyGrid terrainMap onDrawTerrain />
+        </Svg>
       </LayoutContext.Provider>
     </figure>
   }
