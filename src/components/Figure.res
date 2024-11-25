@@ -81,11 +81,9 @@ module MapMakerFigure = {
           {terrains
           ->Array.map(Terrain.make)
           ->Array.map(terrain =>
-            <button className="flex items-center space-x-2 p-2 rounded border">
-              <span className="text-black text-sm">
-                {terrain.name->Terrain.kindToString->React.string}
-              </span>
-              <div className={terrain.bgColor ++ " w-8 h-8 rounded-full"} />
+            <button
+              className={[terrain.bgColor, terrain.textColor, "p-2 rounded"]->Array.join(" ")}>
+              {terrain.name->Terrain.kindToString->React.string}
             </button>
           )
           ->React.array}

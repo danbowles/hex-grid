@@ -26,17 +26,22 @@ module Terrain = {
     | Mountain => "text-white"
     | Clear => "text-black"
     }
-  let getBaseColor = kind =>
+  let getFillColor = kind =>
     switch kind {
-    | Grass => "green-500"
-    | Water => "blue-500"
-    | Sand => "yellow-500"
-    | Mountain => "gray-500"
-    | Clear => "slate-50"
+    | Grass => "fill-green-500"
+    | Water => "fill-blue-500"
+    | Sand => "fill-yellow-500"
+    | Mountain => "fill-gray-500"
+    | Clear => "fill-slate-50"
     }
-
-  let getFillColor = kind => `fill-${getBaseColor(kind)}`
-  let getBgColor = kind => `bg-${getBaseColor(kind)}`
+  let getBgColor = kind =>
+    switch kind {
+    | Grass => "bg-green-500"
+    | Water => "bg-blue-500"
+    | Sand => "bg-yellow-500"
+    | Mountain => "bg-gray-500"
+    | Clear => "bg-slate-50"
+    }
 
   let kindToString = kind =>
     switch kind {
