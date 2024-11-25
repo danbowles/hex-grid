@@ -15,10 +15,28 @@ module Point = {
 }
 
 module Terrain = {
-  type kind = Grass | Water | Sand | Mountain
-  type t = {name: string, color: string}
+  type kind = Grass | Water | Sand | Mountain | Clear
+  type t = {name: kind, fillColor: string, bgColor: string, textColor: string}
 
-  let make = (name, color) => {name, color}
+  let getTextColor = kind =>
+    switch kind {
+    | Grass => "text-white"
+    | Water => "text-white"
+    | Sand => "text-black"
+    | Mountain => "text-white"
+    | Clear => "text-black"
+    }
+  let getBaseColor = kind =>
+    switch kind {
+    | Grass => "green-500"
+    | Water => "blue-500"
+    | Sand => "yellow-500"
+    | Mountain => "gray-500"
+    | Clear => "slate-50"
+    }
+
+  let getFillColor = kind => `fill-${getBaseColor(kind)}`
+  let getBgColor = kind => `bg-${getBaseColor(kind)}`
 
   let kindToString = kind =>
     switch kind {
@@ -26,12 +44,15 @@ module Terrain = {
     | Water => "Water"
     | Sand => "Sand"
     | Mountain => "Mountain"
+    | Clear => "Clear"
     }
 
-  let grass = make("Grass", "#4CAF50")
-  let water = make("Water", "#2196F3")
-  let sand = make("Sand", "#FFC107")
-  let mountain = make("Mountain", "#795548")
+  let make = name => {
+    name,
+    fillColor: getFillColor(name),
+    textColor: getTextColor(name),
+    bgColor: getBgColor(name),
+  }
 }
 module Hex = {
   type t = {q: int, r: int, s: int}
@@ -324,6 +345,15 @@ module TerrainMap = {
       Dict.set(map, hex->hash, {hex, terrain})
     let get = (map, hex) => Dict.get(map, hex->hash)
     let remove = (map, hex) => Dict.delete(map, hex->hash)
+    let updateTerrain = (map, hex, terrain) => {
+      switch map->get(hex) {
+      | Some(_) => {
+          insert(map, hex, terrain)
+          map
+        }
+      | None => map
+      }
+    }
   }
 
   type t = {
@@ -342,12 +372,20 @@ module TerrainMap = {
       for q in q1 to q2 {
         let s = -q - r
         let hex = Hex.make(q, r, s)
-        let terrain = switch (q, r) {
-        | (0, 0) => Terrain.grass
-        | (0, 1) => Terrain.water
-        | (1, 0) => Terrain.sand
-        | (1, 1) => Terrain.mountain
-        | _ => Terrain.grass
+        let terrain = switch (q, r, s) {
+        | (q, r, s)
+          if q == -width / 2 ||
+          q == width / 2 ||
+          r == -height / 2 ||
+          r == height / 2 ||
+          s == -width / 2 ||
+          s == width / 2 =>
+          Terrain.make(Water)
+        | (0, 0, _) => Terrain.make(Grass)
+        | (0, 1, _) => Terrain.make(Water)
+        | (1, 0, _) => Terrain.make(Sand)
+        | (1, 1, _) => Terrain.make(Mountain)
+        | _ => Terrain.make(Grass)
         }
         hashTable->TerrainMapHashTable.insert(hex, terrain)
       }

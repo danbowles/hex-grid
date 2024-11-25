@@ -7,7 +7,7 @@ open Svg
 module MapMaker = {
   module EmptyGrid = {
     @react.component
-    let make = (~left, ~right, ~top, ~bottom) => {
+    let make = (~height, ~width) => {
       let drawing = Svg.DrawingContext.useContext()
       let layout = LayoutContext.useContext()
 
@@ -17,16 +17,16 @@ module MapMaker = {
         }
       }
 
-      let tMap = TerrainMap.make(~height=10, ~width=10)
+      let tMap = TerrainMap.make(~height, ~width)
       Js.log(tMap.hashTable->TerrainMap.TerrainMapHashTable.get(Hex.make(0, 0, 0)))
-      tMap.hashTable->TerrainMap.TerrainMapHashTable.insert(Hex.make(0, 0, 0), Terrain.water)
-      Js.log(tMap.hashTable->TerrainMap.TerrainMapHashTable.get(Hex.make(0, 0, 0)))
+      // tMap.hashTable->TerrainMap.TerrainMapHashTable.insert(Hex.make(0, 0, 0), Terrain.water)
+      // Js.log(tMap.hashTable->TerrainMap.TerrainMapHashTable.get(Hex.make(0, 0, 0)))
 
       tMap.hashTable
       ->Dict.valuesToArray
       ->Array.map(hexWithTerrain => {
         let key = hexWithTerrain.hex->Hex.toString
-        let style = ReactDOM.Style.make(~strokeWidth="0.3", ~fill=hexWithTerrain.terrain.color, ())
+        let style = ReactDOM.Style.make(~strokeWidth="0.3", ())
         let hexCorners = layout->Layout.polygonCorners(hexWithTerrain.hex)
         let pointsString = Js.Array.map(
           (p: Point.tFloat) => `${p.x->Float.toString},${p.y->Float.toString}`,
@@ -35,7 +35,7 @@ module MapMaker = {
         <polygon
           onMouseEnter={handleMouseEnter}
           key
-          className="stroke-slate-500 fill-slate-50"
+          className={`stroke-slate-500 ${hexWithTerrain.terrain.fillColor}`}
           points={Js.Array.joinWith(",", pointsString)}
           style={style}
         />
@@ -48,7 +48,7 @@ module MapMaker = {
   let make = () =>
     <MapMakerFigure>
       <Svg>
-        <EmptyGrid left={-6} right={6} top={-4} bottom={4} />
+        <EmptyGrid height={10} width={10} />
       </Svg>
     </MapMakerFigure>
 }

@@ -67,13 +67,7 @@ module LayoutContext = {
 module MapMakerFigure = {
   @react.component
   let make = (~caption=?, ~children) => {
-    let buttonStyles = [
-      ("Water", "bg-blue-500 text-white"),
-      ("Sand", "bg-yellow-500 text-black"),
-      ("Mountains", "bg-gray-700 text-white"),
-      ("Grass", "bg-green-500 text-white"),
-    ]
-    // let (canDraw, _) = CanDrawContext.useContext()
+    let terrains: array<Terrain.kind> = [Water, Grass, Mountain, Sand]
     <figure>
       {switch caption {
       | Some(caption) =>
@@ -84,14 +78,17 @@ module MapMakerFigure = {
       }}
       <LayoutContext.Provider value={LayoutContext.layout}>
         <div className="flex space-x-2">
-          {buttonStyles
-          ->Array.map(((label, className)) =>
-            <button className={className ++ " p-2 rounded"}> {label->React.string} </button>
+          {terrains
+          ->Array.map(Terrain.make)
+          ->Array.map(terrain =>
+            <button className="flex items-center space-x-2 p-2 rounded border">
+              <span className="text-black text-sm">
+                {terrain.name->Terrain.kindToString->React.string}
+              </span>
+              <div className={terrain.bgColor ++ " w-8 h-8 rounded-full"} />
+            </button>
           )
           ->React.array}
-          <span className="text-gray-800 text-sm">
-            // {canDraw ? "Drawing"->React.string : "Not Drawing"->React.string}
-          </span>
         </div>
         {children}
       </LayoutContext.Provider>
