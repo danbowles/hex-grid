@@ -359,6 +359,12 @@ module TerrainMap = {
       | None => map
       }
     }
+    let fillMapWithTerrain = (map, terrainKind) => {
+      map->Dict.forEach(hexWithTerrain => {
+        insert(map, hexWithTerrain.hex, Terrain.make(terrainKind))
+      })
+      map
+    }
   }
 
   type t = {

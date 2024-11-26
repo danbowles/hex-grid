@@ -88,6 +88,7 @@ module EmptyGrid = {
         hexCorners,
       )
       <polygon
+        onClick={_ => onDrawTerrain(hexWithTerrain.hex)}
         onMouseEnter={_ => handleMouseEnter(hexWithTerrain.hex)}
         key
         className={`stroke-slate-900 ${hexWithTerrain.terrain.fillColor}`}
@@ -119,6 +120,17 @@ module MapMakerFigure = {
         {hashTable: table}
       })
     }
+    let onFillMapClick = () => {
+      setTerrainMap(_ => {
+        let table = switch activeTerrain {
+        | Some(terrain) =>
+          terrainMap.hashTable->TerrainMap.TerrainMapHashTable.fillMapWithTerrain(terrain)
+        | None => terrainMap.hashTable->TerrainMap.TerrainMapHashTable.fillMapWithTerrain(Clear)
+        }
+        {hashTable: table}
+      })
+    }
+
     <figure>
       <LayoutContext.Provider value={LayoutContext.layout}>
         <div className="flex space-x-2">
@@ -138,6 +150,20 @@ module MapMakerFigure = {
             </button>
           )
           ->React.array}
+          <div className="border-l-8 border-l-white" />
+          <button
+            onClick={_ => onFillMapClick()}
+            className="p-2 border-black border flex items-center space-x-2">
+            <HeroIcons__Solid.PaintBrushIcon
+              className={"h-5 w-5 " ++
+              switch activeTerrain {
+              | Some(Clear) => "text-gray-700"
+              | Some(k) => k->Terrain.getFillColor
+              | _ => "text-gray-700"
+              }}
+            />
+            <span> {"Fill"->React.string} </span>
+          </button>
         </div>
         <Svg>
           <EmptyGrid terrainMap onDrawTerrain />
