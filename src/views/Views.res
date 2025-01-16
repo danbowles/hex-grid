@@ -4,11 +4,11 @@ open FigureWithControls
 open Models
 open Svg
 
-module Hexagon = {
+module SvgHexagon = {
   @react.component
   let make = (
     ~layout: Layout.t,
-    ~hex: Hex.t,
+    ~hex: Hexagon.t,
     ~showColors,
     ~showCoords,
     ~showDebugCircle,
@@ -61,15 +61,15 @@ module Hexagon = {
   }
 }
 
-let useNestedNeighbors = (activeHex: option<Hex.t>) => {
+let useNestedNeighbors = (activeHex: option<Hexagon.t>) => {
   let (hexNeighbors, neighborNeighbors) = switch activeHex {
   | None => ([], [])
   | Some(hex) => {
-      let neighbors = hex->Hex.hexNeighbors
-      let neighborNeighbors = neighbors->Array.flatMap(neighbor => neighbor->Hex.hexNeighbors)
+      let neighbors = hex->Hexagon.hexNeighbors
+      let neighborNeighbors = neighbors->Array.flatMap(neighbor => neighbor->Hexagon.hexNeighbors)
       let neighborsAndActive = neighbors->Array.concat([hex])
       let neighborNeighbors = neighborNeighbors->Array.filter(nn => {
-        switch neighborsAndActive->Array.find(n => Hex.hexAreEqual(n, nn)) {
+        switch neighborsAndActive->Array.find(n => Hexagon.hexAreEqual(n, nn)) {
         | Some(_) => false
         | _ => true
         }
@@ -78,6 +78,49 @@ let useNestedNeighbors = (activeHex: option<Hex.t>) => {
     }
   }
   (hexNeighbors, neighborNeighbors)
+}
+
+let useAllNeighbors = (activeHex: option<Hexagon.t>, levels: int) => {
+  switch (activeHex, levels) {
+  | (None, _) => Array.make(~length=levels, [])
+  | (Some(hex), 0) => Array.make(~length=0, [hex])
+  | (Some(hex), levels) => {
+      let visited = Set.make()
+      let result = []
+
+      let rec findNeighbors = (currentLevel, level) => {
+        if level > levels {
+          ()
+        } else {
+          let nextLevel = []
+
+          currentLevel->Array.forEach(hex => {
+            let neighbors = hex->Hexagon.hexNeighbors
+            neighbors->Array.forEach(n => {
+              switch visited->Set.has(Hexagon.toString(n)) {
+              | true => ()
+              | false => {
+                  visited->Set.add(Hexagon.toString(n))
+                  nextLevel->Array.push(n)
+                }
+              }
+            })
+          })
+
+          if nextLevel->Array.length > 0 {
+            result->Array.push(nextLevel)
+            findNeighbors(nextLevel, level + 1)
+          }
+        }
+      }
+
+      visited->Set.add(Hexagon.toString(hex))
+      result->Array.push([hex])
+      findNeighbors([hex], 1)
+
+      result
+    }
+  }
 }
 
 let renderHex = (
@@ -90,17 +133,17 @@ let renderHex = (
   ~setActiveHex,
 ) => {
   let {showColors, showCoords, showDebugCircle} = controlState
-  let key = hex->Hex.toString
+  let key = hex->Hexagon.toString
   let isActive = switch activeHex {
-  | Some(activeHex) => Hex.hexAreEqual(hex, activeHex)
+  | Some(activeHex) => Hexagon.hexAreEqual(hex, activeHex)
   | None => false
   }
-  let isNeighborOfActive = neighbors->Array.some(neighbor => Hex.hexAreEqual(neighbor, hex))
+  let isNeighborOfActive = neighbors->Array.some(neighbor => Hexagon.hexAreEqual(neighbor, hex))
   let isNeighborOfNeighborOfActive =
-    neighborNeighbors->Array.some(neighbor => Hex.hexAreEqual(neighbor, hex))
+    neighborNeighbors->Array.some(neighbor => Hexagon.hexAreEqual(neighbor, hex))
   let onMouseEnter = controlState.highlightNeighbors ? _ => setActiveHex(_ => Some(hex)) : _ => ()
   let onMouseLeave = controlState.highlightNeighbors ? _ => setActiveHex(_ => None) : _ => ()
-  <Hexagon
+  <SvgHexagon
     key
     layout
     hex
@@ -120,11 +163,37 @@ module HexagonGrid = {
   let make = (~size) => {
     let controlState = ControlsContext.useContext()
     let layout = LayoutContext.useContext()
-    let (activeHex: option<Hex.t>, setActiveHex) = React.useState(_ => None)
+    let (activeHex: option<Hexagon.t>, setActiveHex) = React.useState(_ => None)
     let (neighbors, neighborNeighbors) = useNestedNeighbors(activeHex)
+    let allNeighbors = useAllNeighbors(activeHex, 4)
 
-    HexagonalMap.make(size)
-    ->HexagonalMap.toArray
+    let colors = list{
+      "fill-red-500",
+      "fill-orange-500",
+      "fill-yellow-500",
+      "fill-green-500",
+      "fill-blue-500",
+    }
+
+    switch activeHex {
+    | Some(hex) if hex->Hexagon.hexAreEqual(Hexagon.make(0, 0, 0)) => {
+        let allNeighborsWithColors = allNeighbors->Array.mapWithIndex((neighbors, i) => {
+          switch colors->List.get(mod(i, colors->List.length)) {
+          | Some(color) => neighbors->Array.map(n => (n, color))
+          | None => neighbors->Array.map(n => (n, "fill-slate-50"))
+          }
+        })
+        Js.log((
+          "All Neighbors",
+          allNeighbors->Array.mapWithIndex((neighbors, i) => (i, neighbors->Array.length)),
+          allNeighborsWithColors->Array.flat,
+        ))
+      }
+    | _ => ()
+    }
+
+    Models.Maps.HexagonalMap.make(size)
+    ->Models.Maps.HexagonalMap.toArray
     ->Array.map(hex => {
       renderHex(
         ~hex,
@@ -142,14 +211,14 @@ module HexagonGrid = {
 
 module ParallelogramGrid = {
   @react.component
-  let make = (~size, ~direction: ParallelogramMap.direction) => {
+  let make = (~size, ~direction: Models.Maps.ParallelogramMap.direction) => {
     let controlState = ControlsContext.useContext()
     let layout = LayoutContext.useContext()
-    let (activeHex: option<Hex.t>, setActiveHex) = React.useState(_ => None)
+    let (activeHex: option<Hexagon.t>, setActiveHex) = React.useState(_ => None)
     let (neighbors, neighborNeighbors) = useNestedNeighbors(activeHex)
 
-    ParallelogramMap.make(size, direction)
-    ->ParallelogramMap.toArray
+    Models.Maps.ParallelogramMap.make(size, direction)
+    ->Models.Maps.ParallelogramMap.toArray
     ->Array.map(hex => {
       renderHex(
         ~hex,
@@ -170,11 +239,11 @@ module RectangularGrid = {
   let make = (~left, ~right, ~top, ~bottom) => {
     let controlState = ControlsContext.useContext()
     let layout = LayoutContext.useContext()
-    let (activeHex: option<Hex.t>, setActiveHex) = React.useState(_ => None)
+    let (activeHex: option<Hexagon.t>, setActiveHex) = React.useState(_ => None)
     let (neighbors, neighborNeighbors) = useNestedNeighbors(activeHex)
 
-    RectangularMap.make(~left, ~right, ~top, ~bottom)
-    ->RectangularMap.toArray
+    Models.Maps.RectangularMap.make(~left, ~right, ~top, ~bottom)
+    ->Models.Maps.RectangularMap.toArray
     ->Array.map(hex => {
       renderHex(
         ~hex,
@@ -195,11 +264,11 @@ module TriangularGrid = {
   let make = (~size) => {
     let controlState = ControlsContext.useContext()
     let layout = LayoutContext.useContext()
-    let (activeHex: option<Hex.t>, setActiveHex) = React.useState(_ => None)
+    let (activeHex: option<Hexagon.t>, setActiveHex) = React.useState(_ => None)
     let (neighbors, neighborNeighbors) = useNestedNeighbors(activeHex)
 
-    TriangularMap.make(size)
-    ->TriangularMap.toArray
+    Models.Maps.TriangularMap.make(size)
+    ->Models.Maps.TriangularMap.toArray
     ->Array.map(hex => {
       renderHex(
         ~hex,
@@ -231,7 +300,7 @@ module MapShapes = {
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <FigureWithControls caption="Parallelogram Map">
         <Svg>
-          <ParallelogramGrid size={4} direction={ParallelogramMap.LeftRight} />
+          <ParallelogramGrid size={4} direction={Models.Maps.ParallelogramMap.LeftRight} />
         </Svg>
       </FigureWithControls>
       <FigureWithControls caption="Hexagon Map">

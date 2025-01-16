@@ -1,6 +1,8 @@
 open Models
 open Svg
 
+module TerrainMap = Maps.TerrainMap
+
 module MapControlState = {
   let name = "MapControlState"
   type state = {
@@ -67,7 +69,7 @@ module LayoutContext = {
 
 module EmptyGrid = {
   @react.component
-  let make = (~terrainMap: TerrainMap.t, ~onDrawTerrain) => {
+  let make = (~terrainMap: Maps.TerrainMap.t, ~onDrawTerrain) => {
     let drawing = Svg.DrawingContext.useContext()
     let layout = LayoutContext.useContext()
 
@@ -80,7 +82,7 @@ module EmptyGrid = {
     terrainMap.hashTable
     ->Dict.valuesToArray
     ->Array.map(hexWithTerrain => {
-      let key = hexWithTerrain.hex->Hex.toString
+      let key = hexWithTerrain.hex->Models.Hexagon.toString
       let style = ReactDOM.Style.make(~strokeWidth="0.1", ())
       let hexCorners = layout->Layout.polygonCorners(hexWithTerrain.hex)
       let pointsString = Js.Array.map(
@@ -103,8 +105,8 @@ module EmptyGrid = {
 module MapMakerFigure = {
   @react.component
   let make = () => {
-    let terrains: array<Terrain.kind> = [Water, Grass, Mountain, Sand, Clear]
-    let (activeTerrain: option<Terrain.kind>, setActiveTerrain) = React.useState(() =>
+    let terrains: array<Models.Terrain.kind> = [Water, Grass, Mountain, Sand, Clear]
+    let (activeTerrain: option<Models.Terrain.kind>, setActiveTerrain) = React.useState(() =>
       terrains->Array.get(0)
     )
     let (terrainMap, setTerrainMap) = React.useState(() => TerrainMap.make(~height=8, ~width=10))
@@ -135,10 +137,10 @@ module MapMakerFigure = {
       <LayoutContext.Provider value={LayoutContext.layout}>
         <div className="flex space-x-2">
           {terrains
-          ->Array.map(Terrain.make)
+          ->Array.map(Models.Terrain.make)
           ->Array.map(terrain =>
             <button
-              key={terrain.kind->Terrain.kindToString}
+              key={terrain.kind->Models.Terrain.kindToString}
               onClick={_ => setActiveTerrain(_ => Some(terrain.kind))}
               className={[
                 Some(terrain.kind) === activeTerrain ? "" : "opacity-50",
@@ -146,7 +148,7 @@ module MapMakerFigure = {
                 terrain.textColor,
                 "p-2  border-black border",
               ]->Array.join(" ")}>
-              {terrain.kind->Terrain.kindToString->React.string}
+              {terrain.kind->Models.Terrain.kindToString->React.string}
             </button>
           )
           ->React.array}
@@ -158,7 +160,7 @@ module MapMakerFigure = {
               className={"h-5 w-5 " ++
               switch activeTerrain {
               | Some(Clear) => "text-gray-700"
-              | Some(k) => k->Terrain.getFillColor
+              | Some(k) => k->Models.Terrain.getFillColor
               | _ => "text-gray-700"
               }}
             />
