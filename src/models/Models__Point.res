@@ -10,4 +10,8 @@ let toInt: tFloat => t = (point: tFloat) => {
   {x: Int.fromFloat(x), y: Int.fromFloat(y)}
 }
 
+let toString: tFloat => string = p => {
+  `${p.x->Float.toString},${p.y->Float.toString}`
+}
+
 let makeFloat: (float, float) => tFloat = (x, y) => {x, y}

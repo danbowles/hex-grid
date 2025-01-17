@@ -80,7 +80,15 @@ let useNestedNeighbors = (activeHex: option<Hexagon.t>) => {
   (hexNeighbors, neighborNeighbors)
 }
 
-let useAllNeighbors = (activeHex: option<Hexagon.t>, levels: int) => {
+let useNeighbors: (
+  option<Models.Hexagon.t>,
+  list<string>,
+  int,
+) => array<(Models.Hexagon.t, string)> = (
+  activeHex: option<Hexagon.t>,
+  colors: list<string>,
+  levels: int,
+) => {
   switch (activeHex, levels) {
   | (None, _) => Array.make(~length=levels, [])
   | (Some(hex), 0) => Array.make(~length=0, [hex])
@@ -121,6 +129,13 @@ let useAllNeighbors = (activeHex: option<Hexagon.t>, levels: int) => {
       result
     }
   }
+  ->Array.mapWithIndex((neighbors, i) => {
+    switch colors->List.get(mod(i, colors->List.length)) {
+    | Some(color) => neighbors->Array.map(n => (n, color))
+    | None => neighbors->Array.map(n => (n, "fill-slate-50"))
+    }
+  })
+  ->Array.flat
 }
 
 let renderHex = (
@@ -159,51 +174,84 @@ let renderHex = (
 }
 
 module HexagonGrid = {
+  module SvgHexagon = {
+    @react.component
+    let make = (~hex: Hexagon.t, ~isActive=false, ~neighbors, ~setActiveHex) => {
+      let {
+        showColors,
+        showDebugCircle,
+        showCoords,
+        highlightNeighbors,
+      } = ControlsContext.useContext()
+      let layout = LayoutContext.useContext()
+      let {q, r, s} = hex
+      let points = layout->Layout.polygonCorners(hex)->Array.map(Point.toString)->Array.join(",")
+      let {x, y} = layout->Layout.hexToPixel(hex)
+
+      let hexFill = switch (q, r, s) {
+      | (0, r, s) if r != 0 && s != 0 => "fill-rose-100"
+      | (q, 0, s) if q != 0 && s != 0 => "fill-green-100"
+      | (q, r, 0) if q != 0 && r != 0 => "fill-blue-100"
+      | _ => "fill-slate-50"
+      }
+      let classNames = "transition-colors duration-50 ease-in-out stroke-slate-500"
+
+      let hexFill = switch (
+        neighbors->Array.find(((h, _)) => h->Hexagon.hexAreEqual(hex)),
+        showColors,
+      ) {
+      | (Some((_, color)), _) => color
+      | (None, true) => hexFill
+      | (_, false) => "fill-sslate-50"
+      }
+      let classNames = `${classNames} ${hexFill}`
+
+      <>
+        <polygon
+          className={classNames}
+          points
+          style={ReactDOM.Style.make(~strokeWidth="0.3", ())}
+          onMouseEnter={highlightNeighbors ? _ => setActiveHex(_ => Some(hex)) : _ => ()}
+          onMouseLeave={highlightNeighbors ? _ => setActiveHex(_ => None) : _ => ()}
+          key={hex->Hexagon.toString}
+        />
+        <g>
+          {showDebugCircle
+            ? <circle
+                cx={x->Float.toString} cy={y->Float.toString} r="1" className="fill-red-500"
+              />
+            : <> </>}
+          {showCoords ? <HexText q r s x y /> : <> </>}
+        </g>
+      </>
+    }
+  }
+  let renderHex = (~hex, ~activeHex, ~setActiveHex, ~neighbors) => {
+    let isActive = switch activeHex {
+    | Some(activeHex) => Hexagon.hexAreEqual(hex, activeHex)
+    | None => false
+    }
+    <SvgHexagon hex isActive setActiveHex neighbors />
+  }
   @react.component
   let make = (~size) => {
-    let controlState = ControlsContext.useContext()
-    let layout = LayoutContext.useContext()
-    let (activeHex: option<Hexagon.t>, setActiveHex) = React.useState(_ => None)
-    let (neighbors, neighborNeighbors) = useNestedNeighbors(activeHex)
-    let allNeighbors = useAllNeighbors(activeHex, 4)
-
     let colors = list{
       "fill-red-500",
       "fill-orange-500",
       "fill-yellow-500",
       "fill-green-500",
       "fill-blue-500",
+      "fill-indigo-500",
+      "fill-purple-500",
+      "fill-pink-500",
     }
-
-    switch activeHex {
-    | Some(hex) if hex->Hexagon.hexAreEqual(Hexagon.make(0, 0, 0)) => {
-        let allNeighborsWithColors = allNeighbors->Array.mapWithIndex((neighbors, i) => {
-          switch colors->List.get(mod(i, colors->List.length)) {
-          | Some(color) => neighbors->Array.map(n => (n, color))
-          | None => neighbors->Array.map(n => (n, "fill-slate-50"))
-          }
-        })
-        Js.log((
-          "All Neighbors",
-          allNeighbors->Array.mapWithIndex((neighbors, i) => (i, neighbors->Array.length)),
-          allNeighborsWithColors->Array.flat,
-        ))
-      }
-    | _ => ()
-    }
+    let (activeHex: option<Hexagon.t>, setActiveHex) = React.useState(_ => None)
+    let neighbors: array<(Models.Hexagon.t, string)> = useNeighbors(activeHex, colors, 7)
 
     Models.Maps.HexagonalMap.make(size)
     ->Models.Maps.HexagonalMap.toArray
     ->Array.map(hex => {
-      renderHex(
-        ~hex,
-        ~activeHex,
-        ~neighbors,
-        ~neighborNeighbors,
-        ~layout,
-        ~controlState,
-        ~setActiveHex,
-      )
+      renderHex(~hex, ~activeHex, ~setActiveHex, ~neighbors)
     })
     ->React.array
   }
