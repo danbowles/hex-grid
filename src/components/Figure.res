@@ -1,77 +1,76 @@
+open Contexts
+open Reducers
 open Models
 open Svg
 
 module TerrainMap = Maps.TerrainMap
 
-module MapControlState = {
-  let name = "MapControlState"
-  type state = {
-    showColors: bool,
-    showDebugCircle: bool,
-    showCoords: bool,
-    highlightNeighbors: bool,
-  }
-
-  type action = ShowColors | ShowDebugCircle | ShowCoords | HighlightNeighbors
-
-  let reducer = (state, action) => {
-    switch action {
-    | ShowColors => {...state, showColors: !state.showColors}
-    | ShowDebugCircle => {...state, showDebugCircle: !state.showDebugCircle}
-    | ShowCoords => {...state, showCoords: !state.showCoords}
-    | HighlightNeighbors => {...state, highlightNeighbors: !state.highlightNeighbors}
-    }
-  }
-
-  let empty = () => {
-    showColors: true,
-    showDebugCircle: false,
-    showCoords: true,
-    highlightNeighbors: true,
-  }
-}
-
-let useToggleReducer = () => {
-  let (state, dispatch) = React.useReducer(MapControlState.reducer, MapControlState.empty())
-  (state, dispatch)
-}
-
-module ControlsContext = {
-  let context = React.createContext(MapControlState.empty())
-
-  let useContext = () => React.useContext(context)
-
-  module Provider = {
-    let provider = React.Context.provider(context)
-    @react.component
-    let make = (~value, ~children) => {
-      React.createElement(provider, {value, children})
-    }
-  }
-}
-
-module LayoutContext = {
-  let size = Point.makeFloat(10.0, 10.0)
-  let origin = Point.makeFloat(size.x, size.y *. Math.sqrt(3.0) /. 2.0)
-  let layout = Layout.make(Orientation.pointy, size->Point.toInt, origin)
-  let context = React.createContext(layout)
-
-  let useContext = () => React.useContext(context)
-
-  module Provider = {
-    let provider = React.Context.provider(context)
-    @react.component
-    let make = (~value, ~children) => {
-      React.createElement(provider, {value, children})
-    }
-  }
-}
+// module WaterTexture = {
+//   @react.component
+//   let make = (~points, ~x, ~y) => {
+//     <>
+//       <defs>
+//         <clipPath id="hexagonClip">
+//           <polygon points />
+//         </clipPath>
+//         <filter
+//           id="water"
+//           x={x->Float.toString}
+//           y={y->Float.toString}
+//           width="100%"
+//           height="100%"
+//           filterUnits="objectBoundingBox"
+//           primitiveUnits="userSpaceOnUse"
+//           colorInterpolationFilters="linearRGB">
+//           <feTurbulence
+//             type_="fractalNoise"
+//             baseFrequency="0.05"
+//             numOctaves="4"
+//             seed="15"
+//             stitchTiles="stitch"
+//             x={x->Float.toString}
+//             y={y->Float.toString}
+//             width="100%"
+//             height="100%"
+//             result="turbulence"
+//           />
+//           <feSpecularLighting
+//             surfaceScale="5"
+//             specularConstant="1.8"
+//             specularExponent="20"
+//             lightingColor="#4a90e2"
+//             x={x->Float.toString}
+//             y={y->Float.toString}
+//             width="100%"
+//             height="100%"
+//             in_="turbulence"
+//             result="specularLighting">
+//             <feDistantLight azimuth="3" elevation="90" />
+//           </feSpecularLighting>
+//         </filter>
+//       </defs>
+//       // <g clipPath="url(#hexagonClip)">
+//       <polygon points fill="lightblue" />
+//       // <rect
+//       //   x="0"
+//       //   y="0"
+//       //   width="100"
+//       //   height="100"
+//       //   // clipPath="url(#hexagonClip)"
+//       // />
+//       <rect width="700" height="700" />
+//       // </g>
+//       // <rect width="700" height="700" fill="#ffffff00" />
+//     </>
+//   }
+// }
 
 module EmptyGrid = {
   @react.component
   let make = (~terrainMap: Maps.TerrainMap.t, ~onDrawTerrain) => {
     let drawing = Svg.DrawingContext.useContext()
     let layout = LayoutContext.useContext()
+    let style = ReactDOM.Style.make(~strokeWidth="0.1", ())
 
     let handleMouseEnter = hex => {
       if drawing {
@@ -83,19 +82,15 @@ module EmptyGrid = {
     ->Dict.valuesToArray
     ->Array.map(hexWithTerrain => {
       let key = hexWithTerrain.hex->Models.Hexagon.toString
-      let style = ReactDOM.Style.make(~strokeWidth="0.1", ())
       let hexCorners = layout->Layout.polygonCorners(hexWithTerrain.hex)
-      let pointsString = Js.Array.map(
-        (p: Point.tFloat) => `${p.x->Float.toString},${p.y->Float.toString}`,
-        hexCorners,
-      )
+      let points = hexCorners->Array.map(Point.toString)->Array.join(",")
       <polygon
         onClick={_ => onDrawTerrain(hexWithTerrain.hex)}
         onMouseEnter={_ => handleMouseEnter(hexWithTerrain.hex)}
         key
         className={`stroke-slate-900 ${hexWithTerrain.terrain.fillColor}`}
-        points={Js.Array.joinWith(",", pointsString)}
-        style={style}
+        points
+        style
       />
     })
     ->React.array

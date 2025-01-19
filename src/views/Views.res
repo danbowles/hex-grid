@@ -1,3 +1,4 @@
+open Contexts
 open Figure
 open HexText
 open FigureWithControls
