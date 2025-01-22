@@ -243,8 +243,10 @@ module NotFound = {
 module About = {
   @react.component
   let make = () =>
-    <div className="flex flex-col items-center justify-center h-screen">
+    <div className="flex flex-col">
       <h1 className="text-4xl font-bold"> {"About"->React.string} </h1>
       <p className="text-lg"> {"Learn more about Hexagon Grid Creator"->React.string} </p>
     </div>
 }
+
+module Pathfinding = Views__Pathfinding

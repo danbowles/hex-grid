@@ -15,6 +15,7 @@ let make = () => {
     <main className="flex-grow p-4">
       {switch route {
       | Some(MapShapes) => <Views.MapShapes />
+      | Some(Pathfinding) => <Views.Pathfinding />
       | Some(MapMaker) => <MapMaker />
       | Some(About) => <Views.About />
       | None => <Views.NotFound />

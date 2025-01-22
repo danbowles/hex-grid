@@ -31,3 +31,17 @@ module LayoutContext = {
     }
   }
 }
+
+module DraggingContext = {
+  let context = React.createContext(false)
+
+  let useContext = () => React.useContext(context)
+
+  module Provider = {
+    let provider = React.Context.provider(context)
+    @react.component
+    let make = (~value, ~children) => {
+      React.createElement(provider, {value, children})
+    }
+  }
+}

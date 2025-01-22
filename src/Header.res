@@ -27,6 +27,9 @@ module Header = {
             <Router.Link route=Route.MapShapes> {"Map Shapes"->React.string} </Router.Link>
           </li>
           <li>
+            <Router.Link route=Route.Pathfinding> {"Pathfinding"->React.string} </Router.Link>
+          </li>
+          <li>
             <Router.Link route=Route.MapMaker> {"Map Maker"->React.string} </Router.Link>
           </li>
           <li>

@@ -14,4 +14,7 @@ let toString: tFloat => string = p => {
   `${p.x->Float.toString},${p.y->Float.toString}`
 }
 
+let x = (point: tFloat) => point.x
+let y = (point: tFloat) => point.y
+
 let makeFloat: (float, float) => tFloat = (x, y) => {x, y}

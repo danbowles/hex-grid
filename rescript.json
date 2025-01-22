@@ -16,7 +16,8 @@
   "bs-dependencies": [
     "@rescript/core",
     "@rescript/react",
-    "@kaiko.io/rescript-heroicons-react"
+    "@kaiko.io/rescript-heroicons-react",
+    "rescript-webapi"
   ],
   "bsc-flags": [
     "-open RescriptCore"

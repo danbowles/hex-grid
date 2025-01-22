@@ -8,6 +8,8 @@ let make: (int, int, int) => t = (q, r, s) =>
     panic("Invalid hex coordinates")
   }
 
+let make2: (int, int) => t = (q, r) => make(q, r, -q - r)
+
 let directions = [
   make(1, 0, -1),
   make(1, -1, 0),
