@@ -1,6 +1,22 @@
 module HashTable = Models__HexHashTable
 module Hexagon = Models__Hexagon
 
+module Queue = {
+  type t<'a> = list<'a>
+
+  let empty: t<'a> = list{}
+
+  let enqueue = (queue: t<'a>, item: 'a): t<'a> => {
+    queue->List.concat(list{item})
+  }
+
+  let dequeue = (queue: t<'a>): option<t<'a>> =>
+    switch queue {
+    | list{} => None
+    | _ => List.drop(queue, 1)
+    }
+}
+
 external infinity: int = "Infinity"
 
 type minMax = {min: int, max: int}
@@ -37,6 +53,14 @@ let makeRectangle = (~height, ~width) => {
     })
 
   {grid, bounds}
+}
+
+let inBounds = (grid, hex: Hexagon.t) => {
+  let {q, r, _} = hex
+  switch grid->HashTable.get(Hexagon.make2(q, r)) {
+  | None => false
+  | Some(_) => true
+  }
 }
 let mapGrid = ({grid}: t, mapFn) => {
   grid

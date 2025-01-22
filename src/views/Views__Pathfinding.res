@@ -1,29 +1,7 @@
 open Contexts
-open Svg
 open Models
-
-module Utils = {
-  let getRandomInt = (min, max) => {
-    let min = Math.ceil(min->float)
-    let max = Math.floor(max->float)
-    Math.floor(Math.random() *. (max -. min +. 1.0) +. min)->Float.toInt
-  }
-}
-
-module GridUtils = {
-  let getRandomHexagon = ({grid, bounds}: Grid.t) => {
-    let {qMin, qMax, rMin, rMax} = bounds
-    let rec loop = () => {
-      let q = Utils.getRandomInt(qMin, qMax)
-      let r = Utils.getRandomInt(rMin, rMax)
-      switch grid->Grid.HashTable.get(Hexagon.make2(q, r)) {
-      | None => loop()
-      | Some(hex) => hex
-      }
-    }
-    loop()
-  }
-}
+open Svg
+open Utils
 
 let useSvgDrag = (~x, ~y) => {
   let (coords: Point.tFloat, setCoordinates) = React.useState(_ => Point.makeFloat(x, y))
@@ -122,8 +100,8 @@ module PatfindingGrid = {
 let make = () => {
   let grid = Grid.makeRectangle(~height=14, ~width=20)
   let layout = LayoutContext.useContext()
-  let startingHex = GridUtils.getRandomHexagon(grid)
-  let endingHex = GridUtils.getRandomHexagon(grid)
+  let startingHex = Utils.getRandomHexagon(grid)
+  let endingHex = Utils.getRandomHexagon(grid)
   let {x, y} = layout->Layout.hexToPixel(startingHex)
   let {x: endX, y: endY} = layout->Layout.hexToPixel(endingHex)
 
