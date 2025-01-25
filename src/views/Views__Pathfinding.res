@@ -1,7 +1,6 @@
 open Contexts
 open Models
 open Svg
-open Utils
 
 let useSvgDrag = (~x, ~y) => {
   let (coords: Point.tFloat, setCoordinates) = React.useState(_ => Point.makeFloat(x, y))
@@ -25,6 +24,7 @@ let useSvgDrag = (~x, ~y) => {
 }
 
 module PatfindingGrid = {
+  module Draggable = {}
   module DraggableStart = {
     @react.component
     let make = (~x, ~y) => {
@@ -80,7 +80,6 @@ module PatfindingGrid = {
   @react.component
   let make = (~grid) => {
     let layout = LayoutContext.useContext()
-    Js.log("Rendering Pathfinding Grid")
 
     grid
     ->Grid.mapGrid(hexagon => {
@@ -100,17 +99,48 @@ module PatfindingGrid = {
 let make = () => {
   let grid = Grid.makeRectangle(~height=14, ~width=20)
   let layout = LayoutContext.useContext()
+  let walls = Utils.makeWalls(grid, 50)
   let startingHex = Utils.getRandomHexagon(grid)
   let endingHex = Utils.getRandomHexagon(grid)
   let {x, y} = layout->Layout.hexToPixel(startingHex)
   let {x: endX, y: endY} = layout->Layout.hexToPixel(endingHex)
 
+  let path = GridBfs.breadthFirstSearch(~start=startingHex, ~goal=endingHex, ~grid, ~walls)
+  Js.log(path)
+
   <figure>
     <LayoutContext.Provider value={LayoutContext.layout}>
       <Svg>
         <PatfindingGrid grid />
+        {switch path {
+        | None => <> </>
+        | Some(path) =>
+          let pathArr = path->List.toArray
+          pathArr
+          ->Array.map(hexagon => {
+            let key = hexagon->Models.Hexagon.toString
+            let points =
+              layout
+              ->Layout.polygonCorners(hexagon)
+              ->Array.map(Point.toString)
+              ->Array.join(",")
+            <polygon key className={`stroke-slate-900 fill-orange-200`} points />
+          })
+          ->React.array
+        }}
+        {walls
+        ->Dict.valuesToArray
+        ->Array.map(hexagon => {
+          let {x, y} = layout->Layout.hexToPixel(hexagon)
+          <circle
+            cx={x->Float.toString} cy={y->Float.toString} r="7.5" className="fill-slate-300"
+          />
+        })
+        ->React.array}
         <PatfindingGrid.DraggableStart x y />
-        <PatfindingGrid.DraggableStart x={endX} y={endY} />
+        <circle
+          cx={endX->Float.toString} cy={endY->Float.toString} r="4" className="fill-rose-400"
+        />
       </Svg>
     </LayoutContext.Provider>
   </figure>

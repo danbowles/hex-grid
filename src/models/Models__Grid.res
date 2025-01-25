@@ -1,21 +1,6 @@
 module HashTable = Models__HexHashTable
 module Hexagon = Models__Hexagon
-
-module Queue = {
-  type t<'a> = list<'a>
-
-  let empty: t<'a> = list{}
-
-  let enqueue = (queue: t<'a>, item: 'a): t<'a> => {
-    queue->List.concat(list{item})
-  }
-
-  let dequeue = (queue: t<'a>): option<t<'a>> =>
-    switch queue {
-    | list{} => None
-    | _ => List.drop(queue, 1)
-    }
-}
+module Queue = Models__Queue
 
 external infinity: int = "Infinity"
 
@@ -62,6 +47,14 @@ let inBounds = (grid, hex: Hexagon.t) => {
   | Some(_) => true
   }
 }
+
+let isWall = (walls, hex: Hexagon.t) => {
+  switch walls->HashTable.get(hex) {
+  | None => false
+  | Some(_) => true
+  }
+}
+
 let mapGrid = ({grid}: t, mapFn) => {
   grid
   ->Dict.valuesToArray

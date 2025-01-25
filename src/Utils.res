@@ -20,3 +20,12 @@ let getRandomHexagon = ({grid, bounds}: Grid.t) => {
   }
   loop()
 }
+
+let makeWalls = (grid: Grid.t, count) => {
+  let walls = HashTable.make()
+  for _ in 0 to count {
+    let hex = grid->getRandomHexagon
+    walls->HashTable.insert(hex)
+  }
+  walls
+}
