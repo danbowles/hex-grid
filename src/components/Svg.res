@@ -70,8 +70,6 @@ module Svg = {
         e->ReactEvent.Mouse.preventDefault
       }
 
-      Js.log("Render Group")
-
       <DraggingContext.Provider value=dragging>
         <g
           onMouseEnter={handleMouseEnter}
@@ -120,7 +118,6 @@ module Svg = {
       | None => ()
       }
     }
-    Js.log("Render Svg")
     <ScreenCtmContext.Provider value={(svgMatrix, svgRef.current->Nullable.toOption)}>
       <svg viewBox ref={ReactDOM.Ref.domRef(svgRef)}>
         <Group setGroupRef={handleGroupRef}> {children} </Group>
