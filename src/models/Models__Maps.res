@@ -77,7 +77,6 @@ module RectangularMap = {
       for q in q1 to q2 {
         let s = -q - r
         let hex = Hexagon.make(q, r, s)
-        Js.log((q, r, s))
         hashTable->HexHashTable.insert(hex)
       }
     }
