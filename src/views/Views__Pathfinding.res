@@ -3,7 +3,7 @@ open Models
 open Svg
 
 let useSvgDrag = (~x, ~y) => {
-  let (coords: Point.tFloat, setCoordinates) = React.useState(_ => Point.makeFloat(x, y))
+  let (coords: Point.t, setCoordinates) = React.useState(_ => Point.make(x, y))
   let (dragging, setDragging) = React.useState(_ => false)
 
   let startDrag = _ => {
@@ -12,7 +12,7 @@ let useSvgDrag = (~x, ~y) => {
 
   let drag = (x, y) => {
     if dragging {
-      setCoordinates(_ => Point.makeFloat(x, y))
+      setCoordinates(_ => Point.make(x, y))
     }
   }
 
@@ -24,23 +24,21 @@ let useSvgDrag = (~x, ~y) => {
 }
 
 module PatfindingGrid = {
-  module Draggable = {}
-  module DraggableStart = {
+  module Draggable = {
+    type draggable = Start | End
+
     @react.component
-    let make = (~x, ~y) => {
+    let make = (~point, ~grid: Grid.t, ~walls, ~setHexagon, ~type_) => {
+      let {grid} = grid
       let dragging = DraggingContext.useContext()
+      let layout = LayoutContext.useContext()
       let (matrixInversed, _) = ScreenCtmContext.useContext()
-      let (circleCoords, setCircleCoords) = React.useState(_ => Point.makeFloat(x, y))
-      let (_, _, startDrag, _, stopDrag) = useSvgDrag(~x, ~y)
-      let style = ReactDOM.Style.make(
-        ~fontSize="3px",
-        ~fontFamily="monospace",
-        ~pointerEvents="none",
-        (),
-      )
+      let (circleCoords, setCircleCoords) = React.useState(_ => point)
+      let (r, setR) = React.useState(_ => "4")
 
       let onMouseDown = _ => {
-        startDrag()
+        setR(_ => "7")
+        ()
       }
 
       let onMouseMove = (event: JsxEvent.Mouse.t) => {
@@ -49,34 +47,59 @@ module PatfindingGrid = {
           let cY = event->PervasivesU.JsxEvent.Mouse.clientY->float
           let domP = createDomPoint(cX, cY)
           let {x: sX, y: sY} = matrixTransform(domP, matrixInversed)
-          setCircleCoords(_ => Point.makeFloat(sX, sY))
+          setCircleCoords(_ => Point.make(sX, sY))
+
+          let fractionalHexagon = Layout.pixelToHex(
+            layout,
+            Point.make(circleCoords.x, circleCoords.y),
+          )
+          let roundedHex = Layout.hexRound(fractionalHexagon)
+          let setNewHex = switch (Grid.inBounds(grid, roundedHex), Grid.isWall(walls, roundedHex)) {
+          | (true, false) => true
+          | _ => false
+          }
+          if setNewHex {
+            setHexagon(roundedHex)
+          }
         }
       }
 
       let onMouseUp = _ => {
-        stopDrag()
+        let fractionalHexagon = Layout.pixelToHex(
+          layout,
+          Point.make(circleCoords.x, circleCoords.y),
+        )
+        let roundedHex = Layout.hexRound(fractionalHexagon)
+        let (snappedPixel, setNewHex) = switch (
+          Grid.inBounds(grid, roundedHex),
+          Grid.isWall(walls, roundedHex),
+        ) {
+        | (true, false) => (Layout.hexToPixel(layout, roundedHex), true)
+        | _ => (point, false)
+        }
+        setCircleCoords(_ => snappedPixel)
+        if setNewHex {
+          setHexagon(roundedHex)
+        }
+        setR(_ => "4")
       }
       let onMouseLeave = _ => {
-        // stopDrag()
+        Js.log("Mouse left")
         ()
+      }
+
+      let className = switch type_ {
+      | Start => "fill-green-400"
+      | End => "fill-rose-400"
       }
       <g onMouseDown onMouseMove onMouseUp onMouseLeave>
         <circle
-          cx={circleCoords.x->Float.toString}
-          cy={circleCoords.y->Float.toString}
-          r="4"
-          className="fill-green-400"
+          cx={circleCoords.x->Float.toString} cy={circleCoords.y->Float.toString} r className
         />
-        // <text
-        //   style
-        //   textAnchor="middle"
-        //   x={circleCoords.x->Float.toString}
-        //   y={circleCoords.y->Float.toString}>
-        //   {`(${circleCoords.x->Float.toFixed}, ${circleCoords.y->Float.toString})`->React.string}
-        // </text>
       </g>
     }
   }
+
   @react.component
   let make = (~grid) => {
     let layout = LayoutContext.useContext()
@@ -96,17 +119,31 @@ module PatfindingGrid = {
 }
 
 @react.component
-let make = () => {
-  let grid = Grid.makeRectangle(~height=14, ~width=20)
+let make = (~grid, ~walls) => {
   let layout = LayoutContext.useContext()
-  let walls = Utils.makeWalls(grid, 50)
-  let startingHex = Utils.getRandomHexagon(grid)
-  let endingHex = Utils.getRandomHexagon(grid)
-  let {x, y} = layout->Layout.hexToPixel(startingHex)
-  let {x: endX, y: endY} = layout->Layout.hexToPixel(endingHex)
+  let (startingHex, setStartingHex) = React.useState(_ => Utils.getRandomHexagon(grid))
+  let (endingHex, setEndingHex) = React.useState(_ => Utils.getRandomHexagon(grid))
 
   let path = GridBfs.breadthFirstSearch(~start=startingHex, ~goal=endingHex, ~grid, ~walls)
-  Js.log(path)
+
+  let linePoints = path->Option.map(path => {
+    path
+    ->List.toArray
+    ->Array.map(hexagon => {
+      let {x, y} = layout->Layout.hexToPixel(hexagon)
+      Point.make(x, y)
+    })
+    ->Array.map(Point.toString)
+    ->Array.join(" ")
+  })
+
+  let renderWall = hexagon => {
+    let {x, y} = layout->Layout.hexToPixel(hexagon)
+    let cx = x->Float.toString
+    let cy = y->Float.toString
+    let key = hexagon->Models.Hexagon.toString
+    <circle key cx cy r="7.5" className="fill-slate-300" />
+  }
 
   <figure>
     <LayoutContext.Provider value={LayoutContext.layout}>
@@ -124,22 +161,33 @@ let make = () => {
               ->Layout.polygonCorners(hexagon)
               ->Array.map(Point.toString)
               ->Array.join(",")
-            <polygon key className={`stroke-slate-900 fill-orange-200`} points />
+            <polygon key className={`stroke-slate-900 fill-blue-100`} points />
           })
           ->React.array
         }}
-        {walls
-        ->Dict.valuesToArray
-        ->Array.map(hexagon => {
-          let {x, y} = layout->Layout.hexToPixel(hexagon)
-          <circle
-            cx={x->Float.toString} cy={y->Float.toString} r="7.5" className="fill-slate-300"
-          />
-        })
-        ->React.array}
-        <PatfindingGrid.DraggableStart x y />
-        <circle
-          cx={endX->Float.toString} cy={endY->Float.toString} r="4" className="fill-rose-400"
+        <polyline points={linePoints->Option.getOr("")} className="stroke-blue-400" fill="none" />
+        // "Walls"
+        {walls->Dict.valuesToArray->Array.map(renderWall)->React.array}
+        <PatfindingGrid.Draggable
+          point={layout->Layout.hexToPixel(startingHex)}
+          grid
+          walls
+          setHexagon={hex => {
+            setStartingHex(_ => hex)
+          }}
+          type_={PatfindingGrid.Draggable.Start}
+        />
+        // <circle
+        //   cx={endX->Float.toString} cy={endY->Float.toString} r="4" className="fill-rose-400"
+        // />
+        <PatfindingGrid.Draggable
+          point={layout->Layout.hexToPixel(endingHex)}
+          grid
+          walls
+          setHexagon={hex => {
+            setEndingHex(_ => hex)
+          }}
+          type_={PatfindingGrid.Draggable.End}
         />
       </Svg>
     </LayoutContext.Provider>

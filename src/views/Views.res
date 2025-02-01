@@ -42,7 +42,6 @@ module SvgHexagon = {
         style={ReactDOM.Style.make(~strokeWidth="0.3", ())}
         onMouseEnter
         onMouseLeave
-        key={hex->Hexagon.toString}
       />
       <g>
         {showDebugCircle
@@ -149,7 +148,8 @@ module ParallelogramGrid = {
       | Some(activeHex) => Hexagon.hexAreEqual(hex, activeHex)
       | None => false
       }
-      <SvgHexagon hex isActive setActiveHex neighbors />
+
+      <SvgHexagon hex isActive setActiveHex neighbors key={hex->Hexagon.toString} />
     })
     ->React.array
   }
@@ -249,4 +249,12 @@ module About = {
     </div>
 }
 
-module Pathfinding = Views__Pathfinding
+module Pathfinding = {
+  @react.component
+  let make = () => {
+    let grid = Grid.makeRectangle(~height=14, ~width=20)
+    let walls = Utils.makeWalls(grid, 50)
+
+    <Views__Pathfinding grid walls />
+  }
+}
