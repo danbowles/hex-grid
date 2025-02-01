@@ -16,9 +16,9 @@ module ControlsContext = {
 }
 
 module LayoutContext = {
-  let size = Point.makeFloat(10.0, 10.0)
-  let origin = Point.makeFloat(size.x, size.y *. Math.sqrt(3.0) /. 2.0)
-  let layout = Layout.make(Orientation.pointy, size->Point.toInt, origin)
+  let size = Point.make(10.0, 10.0)
+  let origin = Point.make(size.x, size.y *. Math.sqrt(3.0) /. 2.0)
+  let layout = Layout.make(Orientation.pointy, size, origin)
   let context = React.createContext(layout)
 
   let useContext = () => React.useContext(context)
