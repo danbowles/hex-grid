@@ -1,5 +1,15 @@
+module Fractional = {
+  type t = {q: float, r: float, s: float}
+
+  let make: (float, float) => t = (q, r) => {q, r, s: q *. -1.0 -. r *. -1.0}
+
+  let toString = hex => {
+    let {q, r, s} = hex
+    `Hex(${q->Float.toString}, ${r->Float.toString}, ${s->Float.toString})`
+  }
+}
+
 type t = {q: int, r: int, s: int}
-type tFloat = {q: float, r: float, s: float}
 
 let make: (int, int, int) => t = (q, r, s) =>
   if q + r + s == 0 {
@@ -11,12 +21,13 @@ let make: (int, int, int) => t = (q, r, s) =>
 let make2: (int, int) => t = (q, r) => make(q, r, -q - r)
 
 let directions = [
-  make(1, 0, -1),
-  make(1, -1, 0),
-  make(0, -1, 1),
-  make(-1, 0, 1),
-  make(-1, 1, 0),
-  make(0, 1, -1),
+  // Clockwise from top-left
+  make(0, -1, 1), // Top-left
+  make(1, -1, 0), // Top-right
+  make(1, 0, -1), // Right
+  make(0, 1, -1), // Bottom-right
+  make(-1, 1, 0), // Bottom-left
+  make(-1, 0, 1), // Left
 ]
 
 let hexAreEqual = (a: t, b: t) => a.q == b.q && a.r == b.r && a.s == b.s
@@ -43,9 +54,3 @@ let hexNeighbor = (hex, direction) =>
   }
 
 let hexNeighbors = hex => directions->Array.map(direction => hexAdd(hex, direction))
-
-let toFloat: t => tFloat = (hex: t) => {
-  q: Float.parseInt(hex.q),
-  r: Float.parseInt(hex.r),
-  s: Float.parseInt(hex.s),
-}
