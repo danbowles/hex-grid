@@ -192,7 +192,7 @@ module FigureWithControls = {
         <div className="flex justify-center space-x-4 mb-3">
           {controls
           ->Array.map(((action, checked, label)) =>
-            <label className="flex items-center space-x-2">
+            <label className="flex items-center space-x-2" key={label}>
               <input
                 type_="checkbox"
                 className="form-checkbox h-4 w-4 text-blue-600"
