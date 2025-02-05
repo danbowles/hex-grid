@@ -1,102 +1,82 @@
 open Contexts
 open Models
 open Svg
+open Reducers
 
-let useSvgDrag = (~x, ~y) => {
-  let (coords: Point.t, setCoordinates) = React.useState(_ => Point.make(x, y))
-  let (dragging, setDragging) = React.useState(_ => false)
-
-  let startDrag = _ => {
-    setDragging(_ => true)
-  }
-
-  let drag = (x, y) => {
-    if dragging {
-      setCoordinates(_ => Point.make(x, y))
-    }
-  }
-
-  let stopDrag = _ => {
-    setDragging(_ => false)
-  }
-
-  (coords, dragging, startDrag, drag, stopDrag)
-}
+@get external pointerId: JsxEvent.Pointer.t => float = "pointerId"
 
 module PatfindingGrid = {
   module Draggable = {
     type draggable = Start | End
+    type position = {point: Point.t, active: bool, translate: Point.t}
 
     @react.component
-    let make = (~point, ~grid: Grid.t, ~walls, ~setHexagon, ~type_) => {
-      let {grid} = grid
-      let dragging = DraggingContext.useContext()
+    let make = (~point: Point.t, ~type_, ~onPointerMove, ~onPointerUp) => {
       let layout = LayoutContext.useContext()
       let (matrixInversed, _) = ScreenCtmContext.useContext()
-      let (circleCoords, setCircleCoords) = React.useState(_ => point)
       let (r, setR) = React.useState(_ => "4")
+      let (position, setPosition) = React.useState(_ => {
+        point,
+        active: false,
+        translate: Point.make(0.0, 0.0),
+      })
 
-      let onMouseDown = _ => {
+      let handlePointerDown = event => {
         setR(_ => "7")
-        ()
+        event->PervasivesU.JsxEvent.Pointer.target->setPointerCaptureForObj(event->pointerId)
+        setPosition(_ => {
+          ...position,
+          active: true,
+        })
       }
 
-      let onMouseMove = (event: JsxEvent.Mouse.t) => {
-        if dragging {
-          let cX = event->PervasivesU.JsxEvent.Mouse.clientX->float
-          let cY = event->PervasivesU.JsxEvent.Mouse.clientY->float
+      let handlePointerMove = event => {
+        let cX = event->PervasivesU.JsxEvent.Pointer.clientX->float
+        let cY = event->PervasivesU.JsxEvent.Pointer.clientY->float
+        if position.active {
           let domP = createDomPoint(cX, cY)
           let {x: sX, y: sY} = matrixTransform(domP, matrixInversed)
-          setCircleCoords(_ => Point.make(sX, sY))
-
-          let fractionalHexagon = Layout.pixelToHex(
-            layout,
-            Point.make(circleCoords.x, circleCoords.y),
-          )
-          let roundedHex = Layout.hexRound(fractionalHexagon)
-          let setNewHex = switch (Grid.inBounds(grid, roundedHex), Grid.isWall(walls, roundedHex)) {
-          | (true, false) => true
-          | _ => false
-          }
-          if setNewHex {
-            setHexagon(roundedHex)
-          }
+          setPosition(_ => {
+            ...position,
+            point: Point.make(sX, sY),
+            translate: Point.make(sX -. point.x, sY -. point.y),
+          })
+          onPointerMove(Layout.pixelToHex(layout, Point.make(sX, sY))->Layout.hexRound)
         }
       }
 
-      let onMouseUp = _ => {
-        let fractionalHexagon = Layout.pixelToHex(
-          layout,
-          Point.make(circleCoords.x, circleCoords.y),
-        )
-        let roundedHex = Layout.hexRound(fractionalHexagon)
-        let (snappedPixel, setNewHex) = switch (
-          Grid.inBounds(grid, roundedHex),
-          Grid.isWall(walls, roundedHex),
-        ) {
-        | (true, false) => (Layout.hexToPixel(layout, roundedHex), true)
-        | _ => (point, false)
-        }
-        setCircleCoords(_ => snappedPixel)
-        if setNewHex {
-          setHexagon(roundedHex)
-        }
+      let handlePointerUp = _ => {
+        setPosition(_ => {
+          ...position,
+          active: false,
+          translate: Point.make(0.0, 0.0),
+        })
         setR(_ => "4")
-      }
-      let onMouseLeave = _ => {
-        Js.log("Mouse left")
-        ()
+        onPointerUp()
       }
 
       let className = switch type_ {
       | Start => "fill-green-400"
       | End => "fill-rose-400"
       }
-      <g onMouseDown onMouseMove onMouseUp onMouseLeave>
-        <circle
-          cx={circleCoords.x->Float.toString} cy={circleCoords.y->Float.toString} r className
-        />
-      </g>
+
+      let className =
+        className ++
+        switch position.active {
+        | true => " cursor-grabbing"
+        | false => " cursor-grab"
+        }
+
+      <circle
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        transform={`translate(${position.translate->Point.toString})`}
+        cx={point.x->Float.toString}
+        cy={point.y->Float.toString}
+        r
+        className
+      />
     }
   }
 
@@ -119,23 +99,50 @@ module PatfindingGrid = {
 }
 
 @react.component
-let make = (~grid, ~walls) => {
+let make = () => {
+  let (state, dispatch) = usePathfindingGridState(~height=14, ~width=20, ~wallCount=100)
   let layout = LayoutContext.useContext()
-  let (startingHex, setStartingHex) = React.useState(_ => Utils.getRandomHexagon(grid))
-  let (endingHex, setEndingHex) = React.useState(_ => Utils.getRandomHexagon(grid))
+  let {walls, grid} = state
 
-  let path = GridBfs.breadthFirstSearch(~start=startingHex, ~goal=endingHex, ~grid, ~walls)
+  let points =
+    state.path->Option.map(path => path->List.map(hexagon => layout->Layout.hexToPixel(hexagon)))
 
-  let linePoints = path->Option.map(path => {
-    path
-    ->List.toArray
-    ->Array.map(hexagon => {
-      let {x, y} = layout->Layout.hexToPixel(hexagon)
-      Point.make(x, y)
-    })
-    ->Array.map(Point.toString)
-    ->Array.join(" ")
-  })
+  let computeMidpoints: List.t<Point.t> => List.t<Point.t> = points => {
+    let pa = points->List.toArray
+    let paRes = []
+    let forFinish = pa->Array.length - 2
+
+    for i in 0 to forFinish {
+      let p1 = pa->Array.get(i)->Option.getExn
+      let p2 = pa->Array.get(i + 1)->Option.getExn
+      let midX = (p1.x +. p2.x) /. 2.0
+      let midY = (p1.y +. p2.y) /. 2.0
+      paRes->Array.push(Point.make(midX, midY))
+    }
+    List.fromArray(paRes)
+  }
+
+  let smoothPolylineToBezier = (points: List.t<Point.t>) => {
+    let midpoints = computeMidpoints(points)->List.toArray
+    let pa = points->List.toArray
+    let firstPoint = pa->Array.get(0)->Option.getExn
+    let path = [`M${firstPoint.x->Float.toString},${firstPoint.y->Float.toString}`] // Start at first point
+    let forEnd = midpoints->Array.length - 2
+
+    for i in 0 to forEnd {
+      let control = pa->Array.get(i + 1)->Option.getExn // Original point as control
+      let nextMid = midpoints->Array.get(i + 1)->Option.getExn // Next midpoint as curve anchor
+
+      path->Array.push(
+        ` Q${control.x->Float.toString},${control.y->Float.toString} ${nextMid.x->Float.toString},${nextMid.y->Float.toString}`,
+      )
+    }
+
+    // Ensure the curve ends at the last point
+    let lastPoint = pa->Array.get(pa->Array.length - 1)->Option.getExn
+    path->Array.push(` T${lastPoint.x->Float.toString},${lastPoint.y->Float.toString}`)
+    path->Array.join("")
+  }
 
   let renderWall = hexagon => {
     let {x, y} = layout->Layout.hexToPixel(hexagon)
@@ -149,44 +156,25 @@ let make = (~grid, ~walls) => {
     <LayoutContext.Provider value={LayoutContext.layout}>
       <Svg>
         <PatfindingGrid grid />
-        {switch path {
-        | None => <> </>
-        | Some(path) =>
-          let pathArr = path->List.toArray
-          pathArr
-          ->Array.map(hexagon => {
-            let key = hexagon->Models.Hexagon.toString
-            let points =
-              layout
-              ->Layout.polygonCorners(hexagon)
-              ->Array.map(Point.toString)
-              ->Array.join(",")
-            <polygon key className={`stroke-slate-900 fill-blue-100`} points />
-          })
-          ->React.array
-        }}
-        <polyline points={linePoints->Option.getOr("")} className="stroke-blue-400" fill="none" />
         // "Walls"
         {walls->Dict.valuesToArray->Array.map(renderWall)->React.array}
+        <path
+          d={smoothPolylineToBezier(points->Option.getOr(list{}))}
+          className="stroke-blue-400 fill-none"
+          strokeWidth="5"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
         <PatfindingGrid.Draggable
-          point={layout->Layout.hexToPixel(startingHex)}
-          grid
-          walls
-          setHexagon={hex => {
-            setStartingHex(_ => hex)
-          }}
+          point={layout->Layout.hexToPixel(state.startingHex)}
+          onPointerMove={hex => dispatch(PathfindingGridState.SetDraggingStartHex(hex))}
+          onPointerUp={_ => dispatch(PathfindingGridState.SetStartingHex(state.draggingStartHex))}
           type_={PatfindingGrid.Draggable.Start}
         />
-        // <circle
-        //   cx={endX->Float.toString} cy={endY->Float.toString} r="4" className="fill-rose-400"
-        // />
         <PatfindingGrid.Draggable
-          point={layout->Layout.hexToPixel(endingHex)}
-          grid
-          walls
-          setHexagon={hex => {
-            setEndingHex(_ => hex)
-          }}
+          point={layout->Layout.hexToPixel(state.endingHex)}
+          onPointerMove={hex => dispatch(PathfindingGridState.SetDraggingEndHex(hex))}
+          onPointerUp={_ => dispatch(PathfindingGridState.SetEndingHex(state.draggingEndHex))}
           type_={PatfindingGrid.Draggable.End}
         />
       </Svg>

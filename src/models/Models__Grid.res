@@ -20,7 +20,7 @@ let makeRectangle = (~height, ~width) => {
     for q in q1 to q2 {
       let s = -q - r
       let hex = Hexagon.make(q, r, s)
-      grid->HashTable.insert(hex)
+      grid->HashTable.insert(hex)->ignore
     }
   }
 
@@ -40,7 +40,7 @@ let makeRectangle = (~height, ~width) => {
   {grid, bounds}
 }
 
-let inBounds = (grid, hex: Hexagon.t) => {
+let inBounds = ({grid}: t, hex: Hexagon.t) => {
   let {q, r, _} = hex
   switch grid->HashTable.get(Hexagon.make2(q, r)) {
   | None => false

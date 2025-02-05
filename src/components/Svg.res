@@ -15,6 +15,17 @@ type svgRect = {
   height: float,
 }
 
+type domRect = {
+  x: float,
+  y: float,
+  width: float,
+  height: float,
+  top: float,
+  right: float,
+  bottom: float,
+  left: float,
+}
+
 type domPoint = {
   x: float,
   y: float,
@@ -23,6 +34,9 @@ type domPoint = {
 @new external createDomPoint: (float, float) => domPoint = "DOMPoint"
 
 @send external getBBox: Dom.element => svgRect = "getBBox"
+@send external setPointerCaptureForObj: ({..}, float) => unit = "setPointerCapture"
+@send external getBBoxFromObject: {..} => svgRect = "getBBox"
+@send external getBoundingClientRectFromObj: {..} => domRect = "getBoundingClientRect"
 @send external getScreenCTM: Dom.element => svgMatrix = "getScreenCTM"
 @send external inverse: svgMatrix => svgMatrix = "inverse"
 @send external matrixTransform: (domPoint, svgMatrix) => domPoint = "matrixTransform"
@@ -46,7 +60,6 @@ module Svg = {
     let make = (~children, ~setGroupRef=?) => {
       let (canDrag, setCanDrag) = React.useState(_ => false)
       let (dragging, setDragging) = React.useState(_ => false)
-      // Js.log(("canDrag", canDrag, "dragging", dragging))
 
       let setGroupRef = element => {
         switch setGroupRef {

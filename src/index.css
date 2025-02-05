@@ -5,3 +5,11 @@
 polygon {
   stroke-width: 0.1;
 }
+
+svg path {
+  transition: all 0.3s;
+}
+
+svg circle {
+  transition: r 0.3s;
+}

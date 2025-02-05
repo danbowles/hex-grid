@@ -11,7 +11,6 @@ type t<'a> = {
 }
 
 let breadthFirstSearch = (~start, ~goal, ~grid: Grid.t, ~walls) => {
-  let {grid} = grid
   let state = {
     visited: Dict.make(),
     cameFrom: Dict.make(),

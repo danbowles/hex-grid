@@ -6,8 +6,8 @@ let getRandomInt = (min, max) => {
   Math.floor(Math.random() *. (max -. min +. 1.0) +. min)->Float.toInt
 }
 
-let getRandomHexagon = ({grid, bounds}: Grid.t) => {
-  let {qMin, qMax, rMin, rMax} = bounds
+let getRandomHexagon = (grid: Grid.t) => {
+  let {qMin, qMax, rMin, rMax} = grid.bounds
   let rec loop = () => {
     let q = getRandomInt(qMin, qMax)
     let r = getRandomInt(rMin, rMax)
@@ -25,7 +25,7 @@ let makeWalls = (grid: Grid.t, count) => {
   let walls = HashTable.make()
   for _ in 0 to count {
     let hex = grid->getRandomHexagon
-    walls->HashTable.insert(hex)
+    walls->HashTable.insert(hex)->ignore
   }
   walls
 }

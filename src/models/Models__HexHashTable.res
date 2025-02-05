@@ -10,6 +10,12 @@ let hash: Models__Hexagon.t => string = hex => {
   key
 }
 
-let insert = (map, hex) => Dict.set(map, hex->hash, hex)
+let insert = (map, hex) => {
+  Dict.set(map, hex->hash, hex)
+  map
+}
 let get = (map, hex) => Dict.get(map, hex->hash)
-let remove = (map, hex) => Dict.delete(map, hex->hash)
+let remove = (map, hex) => {
+  Dict.delete(map, hex->hash)
+  map
+}

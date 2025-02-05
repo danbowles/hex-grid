@@ -251,10 +251,5 @@ module About = {
 
 module Pathfinding = {
   @react.component
-  let make = () => {
-    let grid = Grid.makeRectangle(~height=14, ~width=20)
-    let walls = Utils.makeWalls(grid, 50)
-
-    <Views__Pathfinding grid walls />
-  }
+  let make = () => <Views__Pathfinding />
 }

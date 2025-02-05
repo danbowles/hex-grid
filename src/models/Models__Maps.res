@@ -28,7 +28,7 @@ module HexagonalMap = {
       for r in r1 to r2 {
         let s = -q - r
         let hex = Hexagon.make(q, r, s)
-        hashTable->HexHashTable.insert(hex)
+        hashTable->HexHashTable.insert(hex)->ignore
       }
     }
 
@@ -50,7 +50,7 @@ module ParallelogramMap = {
       for r in r1 to r2 {
         let s = -q - r
         let hex = Hexagon.make(q, r, s)
-        hashTable->HexHashTable.insert(hex)
+        hashTable->HexHashTable.insert(hex)->ignore
       }
     }
 
@@ -77,7 +77,7 @@ module RectangularMap = {
       for q in q1 to q2 {
         let s = -q - r
         let hex = Hexagon.make(q, r, s)
-        hashTable->HexHashTable.insert(hex)
+        hashTable->HexHashTable.insert(hex)->ignore
       }
     }
 
@@ -96,7 +96,7 @@ module TriangularMap = {
       for r in 0 to size - q {
         let s = -q - r
         let hex = Hexagon.make(q, r, s)
-        hashTable->HexHashTable.insert(hex)
+        hashTable->HexHashTable.insert(hex)->ignore
       }
     }
 
