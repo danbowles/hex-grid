@@ -11,13 +11,15 @@ type t =
 
 let fromUrl = (url: RescriptReactRouter.url) => {
   let hash = url.hash->String.split("/")->List.fromArray
+  %debugger
   switch hash {
   // switch url.path {
-  | list{_, ""} => MapShapes->Some
   | list{_, "pathfinding"} => Pathfinding->Some
   | list{_, "map"} => MapMaker->Some
   | list{_, "about"} => About->Some
-  | _ => None
+  | list{_, ""}
+  | _ =>
+    MapShapes->Some
   }
 }
 
