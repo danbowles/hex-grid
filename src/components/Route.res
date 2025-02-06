@@ -1,7 +1,7 @@
 // TODO: Get this from vite config somehow?
 let baseUrl = "/hex-grid"
 
-let buildUrl = (path: string) => baseUrl ++ path
+let buildUrl = (path: string) => baseUrl ++ "/#" ++ path
 
 type t =
   | Pathfinding
@@ -10,11 +10,13 @@ type t =
   | About
 
 let fromUrl = (url: RescriptReactRouter.url) => {
-  switch url.path {
-  | list{_} => MapShapes->Some
+  let hash = url.hash->String.split("/")->List.fromArray
+  switch hash {
+  // switch url.path {
+  | list{_, ""} => MapShapes->Some
   | list{_, "pathfinding"} => Pathfinding->Some
   | list{_, "map"} => MapMaker->Some
-  | list{"hex-grid", "about"} => About->Some
+  | list{_, "about"} => About->Some
   | _ => None
   }
 }
