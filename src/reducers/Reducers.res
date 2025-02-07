@@ -90,8 +90,8 @@ module PathfindingGridState = {
 let usePathfindingGridState = (~height, ~width, ~wallCount) => {
   let grid = Grid.makeRectangle(~height, ~width)
   let walls = Utils.makeWalls(grid, wallCount)
-  let startingHex = Utils.getRandomHexagon(grid)
-  let endingHex = Utils.getRandomHexagon(grid)
+  let startingHex = Utils.getRandomHexagon(grid, ~walls)
+  let endingHex = Utils.getRandomHexagon(grid, ~walls)
 
   // DEBUG
   // let startingHex = Hexagon.make(0, 0, 0)

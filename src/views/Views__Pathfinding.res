@@ -123,25 +123,31 @@ let make = () => {
   }
 
   let smoothPolylineToBezier = (points: List.t<Point.t>) => {
-    let midpoints = computeMidpoints(points)->List.toArray
-    let pa = points->List.toArray
-    let firstPoint = pa->Array.get(0)->Option.getExn
-    let path = [`M${firstPoint.x->Float.toString},${firstPoint.y->Float.toString}`] // Start at first point
-    let forEnd = midpoints->Array.length - 2
+    switch points->List.length {
+    | 0 | 1 => ""
+    | _ => {
+        let midpoints = computeMidpoints(points)->List.toArray
+        let pa = points->List.toArray
+        let firstPoint = pa->Array.get(0)->Option.getOr(Point.make(0.0, 0.0))
+        let path = [`M${firstPoint.x->Float.toString},${firstPoint.y->Float.toString}`] // Start at first point
+        let forEnd = midpoints->Array.length - 2
 
-    for i in 0 to forEnd {
-      let control = pa->Array.get(i + 1)->Option.getExn // Original point as control
-      let nextMid = midpoints->Array.get(i + 1)->Option.getExn // Next midpoint as curve anchor
+        for i in 0 to forEnd {
+          let control = pa->Array.get(i + 1)->Option.getExn // Original point as control
+          let nextMid = midpoints->Array.get(i + 1)->Option.getExn // Next midpoint as curve anchor
 
-      path->Array.push(
-        ` Q${control.x->Float.toString},${control.y->Float.toString} ${nextMid.x->Float.toString},${nextMid.y->Float.toString}`,
-      )
+          path->Array.push(
+            ` Q${control.x->Float.toString},${control.y->Float.toString} ${nextMid.x->Float.toString},${nextMid.y->Float.toString}`,
+          )
+        }
+
+        // Ensure the curve ends at the last point
+
+        let lastPoint = pa->Array.get(pa->Array.length - 1)->Option.getOr(Point.make(0.0, 0.0))
+        path->Array.push(` T${lastPoint.x->Float.toString},${lastPoint.y->Float.toString}`)
+        path->Array.join("")
+      }
     }
-
-    // Ensure the curve ends at the last point
-    let lastPoint = pa->Array.get(pa->Array.length - 1)->Option.getExn
-    path->Array.push(` T${lastPoint.x->Float.toString},${lastPoint.y->Float.toString}`)
-    path->Array.join("")
   }
 
   let renderWall = hexagon => {

@@ -6,13 +6,17 @@ let getRandomInt = (min, max) => {
   Math.floor(Math.random() *. (max -. min +. 1.0) +. min)->Float.toInt
 }
 
-let getRandomHexagon = (grid: Grid.t) => {
+let getRandomHexagon = (grid: Grid.t, ~walls=?) => {
+  let walls = switch walls {
+  | Some(walls) => walls
+  | None => HashTable.make()
+  }
   let {qMin, qMax, rMin, rMax} = grid.bounds
   let rec loop = () => {
     let q = getRandomInt(qMin, qMax)
     let r = getRandomInt(rMin, rMax)
     let hex = Hexagon.make2(q, r)
-    if grid->Grid.inBounds(hex) {
+    if grid->Grid.inBounds(hex) && !Grid.isWall(walls, hex) {
       hex
     } else {
       loop()
