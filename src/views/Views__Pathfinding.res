@@ -23,7 +23,7 @@ module PatfindingGrid = {
 
       let handlePointerDown = event => {
         setR(_ => "7")
-        event->PervasivesU.JsxEvent.Pointer.target->setPointerCaptureForObj(event->pointerId)
+        event->JsxEvent.Pointer.target->setPointerCaptureForObj(event->pointerId)
         setPosition(_ => {
           ...position,
           active: true,
@@ -31,8 +31,8 @@ module PatfindingGrid = {
       }
 
       let handlePointerMove = event => {
-        let cX = event->PervasivesU.JsxEvent.Pointer.clientX->float
-        let cY = event->PervasivesU.JsxEvent.Pointer.clientY->float
+        let cX = event->JsxEvent.Pointer.clientX->float
+        let cY = event->JsxEvent.Pointer.clientY->float
         if position.active {
           let domP = createDomPoint(cX, cY)
           let {x: sX, y: sY} = matrixTransform(domP, matrixInversed)
@@ -136,13 +136,8 @@ let make = () => {
           let control = pa->Array.get(i + 1)->Option.getExn // Original point as control
           let nextMid = midpoints->Array.get(i + 1)->Option.getExn // Next midpoint as curve anchor
 
-          path->Array.push(
-            ` Q${control.x->Float.toString},${control.y->Float.toString} ${nextMid.x->Float.toString},${nextMid.y->Float.toString}`,
-          )
+          path->Array.push(` Q${control->Point.toString} ${nextMid->Point.toString}`)
         }
-
-        // Ensure the curve ends at the last point
-
         let lastPoint = pa->Array.get(pa->Array.length - 1)->Option.getOr(Point.make(0.0, 0.0))
         path->Array.push(` T${lastPoint.x->Float.toString},${lastPoint.y->Float.toString}`)
         path->Array.join("")

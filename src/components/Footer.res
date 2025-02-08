@@ -1,7 +1,7 @@
 module Footer = {
   @react.component
   let make = () =>
-    <footer className="mt-5 pb-6">
+    <footer className="my-5">
       <hr className="mb-6 border-b-1 border-blueGray-600" />
       <div className="flex justify-center space-x-4">
         <a

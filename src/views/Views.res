@@ -129,7 +129,7 @@ module HexagonGrid = {
       | Some(activeHex) => Hexagon.hexAreEqual(hex, activeHex)
       | None => false
       }
-      <SvgHexagon hex isActive setActiveHex neighbors />
+      <SvgHexagon hex isActive setActiveHex neighbors key={hex->Hexagon.toString} />
     })
     ->React.array
   }
@@ -168,7 +168,7 @@ module RectangularGrid = {
       | Some(activeHex) => Hexagon.hexAreEqual(hex, activeHex)
       | None => false
       }
-      <SvgHexagon hex isActive setActiveHex neighbors />
+      <SvgHexagon hex isActive setActiveHex neighbors key={hex->Hexagon.toString} />
     })
     ->React.array
   }
@@ -187,7 +187,7 @@ module TriangularGrid = {
       | Some(activeHex) => Hexagon.hexAreEqual(hex, activeHex)
       | None => false
       }
-      <SvgHexagon hex isActive setActiveHex neighbors />
+      <SvgHexagon hex isActive setActiveHex neighbors key={hex->Hexagon.toString} />
     })
     ->React.array
   }
