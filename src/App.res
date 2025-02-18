@@ -17,7 +17,7 @@ let make = () => {
       | Some(MapShapes) => <Views.MapShapes />
       | Some(Pathfinding) => <Views.Pathfinding />
       | Some(MapMaker) => <MapMaker />
-      | Some(About) => <Views.About />
+      | Some(MapNoise) => <Views.MapNoise />
       | None => <Views.NotFound />
       }}
     </main>

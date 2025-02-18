@@ -5,6 +5,7 @@ module Orientation = Models__Orientation
 module Hexagon = Models__Hexagon
 module HashTable = Models__HexHashTable
 module Grid = Models__Grid
+module DataGrid = Models__DataGrid
 module Queue = Models__Queue
 module GridBfs = Models__GridBfs
 module Maps = {

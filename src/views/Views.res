@@ -253,3 +253,8 @@ module Pathfinding = {
   @react.component
   let make = () => <Views__Pathfinding />
 }
+
+module MapNoise = {
+  @react.component
+  let make = () => <Views__MapNoise />
+}

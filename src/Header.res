@@ -15,31 +15,26 @@ module Header = {
       navClasses ++
       " " ++ "lg:flex lg:top-0 lg:right-0 lg:relative lg:items-right lg:shadow-none lg:mx-auto lg:border-none"
 
-    // Effect to close the menu when clicking outside of it
-    React.useEffect(() => {
-      let handleClickOutside = (event: Dom.event) => {
-        switch menuRef.current->Js.Nullable.toOption {
-        | Some(menu) =>
-          if (
-            !Webapi.Dom.Element.contains(
-              menu,
-              ~child=event->Webapi.Dom.Event.target->Webapi.Dom.EventTarget.unsafeAsElement,
-            )
-          ) {
-            setIsMenuOpen(_ => false)
-          }
-        | None => ()
+    let handleClickOutside = (event: Dom.event) => {
+      switch menuRef.current->Js.Nullable.toOption {
+      | Some(menu) =>
+        if (
+          !Webapi.Dom.Element.contains(
+            menu,
+            ~child=event->Webapi.Dom.Event.target->Webapi.Dom.EventTarget.unsafeAsElement,
+          )
+        ) {
+          setIsMenuOpen(_ => false)
         }
-        ()
-      }
-
-      switch menuRef.current->Nullable.toOption {
-      | Some(_) => Webapi.Dom.Document.addEventListener(document, "mousedown", handleClickOutside)
       | None => ()
       }
+      ()
+    }
 
-      Some(() => Webapi.Dom.Document.removeEventListener(document, "mousedown", handleClickOutside))
-    }, [])
+    switch menuRef.current->Nullable.toOption {
+    | Some(_) => Webapi.Dom.Document.addEventListener(document, "mousedown", handleClickOutside)
+    | None => ()
+    }
 
     <>
       <div className="flex justify-start items-center px-4 my-4 flex-row">
@@ -61,7 +56,7 @@ module Header = {
               <Router.Link route=Route.MapMaker> {"Map Maker"->React.string} </Router.Link>
             </li>
             <li>
-              <Router.Link route=Route.About> {"About"->React.string} </Router.Link>
+              <Router.Link route=Route.MapNoise> {"Map Noise"->React.string} </Router.Link>
             </li>
           </ul>
         </div>

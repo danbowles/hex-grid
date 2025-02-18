@@ -19,3 +19,19 @@ let remove = (map, hex) => {
   Dict.delete(map, hex->hash)
   map
 }
+
+module WithData = {
+  type hexWithData = {
+    hex: Models__Hexagon.t,
+    color: string,
+  }
+  type t = Dict.t<hexWithData>
+
+  let make = make
+  let get = (dict: t, hex: Models__Hexagon.t) => Dict.get(dict, hex->hash)
+
+  let insert = (dict: t, hexData) => {
+    Dict.set(dict, hexData.hex->hash, hexData)
+    dict
+  }
+}

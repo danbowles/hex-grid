@@ -41,8 +41,7 @@ let makeRectangle = (~height, ~width) => {
 }
 
 let inBounds = ({grid}: t, hex: Hexagon.t) => {
-  let {q, r, _} = hex
-  switch grid->HashTable.get(Hexagon.make2(q, r)) {
+  switch grid->HashTable.get(hex) {
   | None => false
   | Some(_) => true
   }
