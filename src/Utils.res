@@ -1,8 +1,8 @@
 open Models
 
 let getRandomInt = (min, max) => {
-  let min = Math.ceil(min->float)
-  let max = Math.floor(max->float)
+  let min = Math.ceil(min->Int.toFloat)
+  let max = Math.floor(max->Int.toFloat)
   Math.floor(Math.random() *. (max -. min +. 1.0) +. min)->Float.toInt
 }
 

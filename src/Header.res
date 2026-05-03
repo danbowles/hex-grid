@@ -16,7 +16,7 @@ module Header = {
       " " ++ "lg:flex lg:top-0 lg:right-0 lg:relative lg:items-right lg:shadow-none lg:mx-auto lg:border-none"
 
     let handleClickOutside = (event: Dom.event) => {
-      switch menuRef.current->Js.Nullable.toOption {
+      switch menuRef.current->Nullable.toOption {
       | Some(menu) =>
         if (
           !Webapi.Dom.Element.contains(

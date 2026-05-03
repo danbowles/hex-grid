@@ -31,10 +31,10 @@ let makeRectangle = (~height, ~width) => {
       {qMin, qMax, rMin, rMax},
       {q, r, _},
     ) => {
-      qMin: Math.min(qMin->float, q->float)->Float.toInt,
-      qMax: Math.max(qMax->float, q->float)->Float.toInt,
-      rMin: Math.min(rMin->float, r->float)->Float.toInt,
-      rMax: Math.max(rMax->float, r->float)->Float.toInt,
+      qMin: Math.min(qMin->Int.toFloat, q->Int.toFloat)->Float.toInt,
+      qMax: Math.max(qMax->Int.toFloat, q->Int.toFloat)->Float.toInt,
+      rMin: Math.min(rMin->Int.toFloat, r->Int.toFloat)->Float.toInt,
+      rMax: Math.max(rMax->Int.toFloat, r->Int.toFloat)->Float.toInt,
     })
 
   {grid, bounds}

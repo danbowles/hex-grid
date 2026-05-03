@@ -39,7 +39,7 @@ module SvgHexagon = {
       <polygon
         className
         points
-        style={ReactDOM.Style.make(~strokeWidth="0.3", ())}
+        style={{strokeWidth: "0.3"}}
         onMouseEnter
         onMouseLeave
       />

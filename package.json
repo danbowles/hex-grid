@@ -7,7 +7,7 @@
   "scripts": {
     "res:build": "rescript",
     "res:clean": "rescript clean",
-    "res:dev": "rescript -w",
+    "res:dev": "rescript watch",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
@@ -15,12 +15,13 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.1.5",
-    "@kaiko.io/rescript-heroicons-react": "^3.0.0-rc.1",
+    "@kaiko.io/rescript-heroicons-react": "^4.0.1",
     "@rescript/core": "^1.6.1",
-    "@rescript/react": "^0.12.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "rescript": "^11.1.4",
+    "@rescript/react": "^0.15.0",
+    "@rescript/runtime": "^12.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "rescript": "^12.2.0",
     "rescript-webapi": "^0.10.0"
   },
   "devDependencies": {

@@ -66,6 +66,7 @@ module Svg = {
         | Some(setGroupRef) => setGroupRef(element)
         | None => ()
         }
+        None
       }
       // Set Dragging
       let handleMouseEnter = _ => setCanDrag(_ => true)

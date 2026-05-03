@@ -70,7 +70,7 @@ module EmptyGrid = {
   let make = (~terrainMap: Maps.TerrainMap.t, ~onDrawTerrain) => {
     let dragging = DraggingContext.useContext()
     let layout = LayoutContext.useContext()
-    let style = ReactDOM.Style.make(~strokeWidth="0.1", ())
+    let style: ReactDOMStyle.t = {strokeWidth: "0.1"}
 
     let handleMouseEnter = hex => {
       if dragging {

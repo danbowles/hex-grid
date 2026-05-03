@@ -38,12 +38,12 @@ let breadthFirstSearch = (~start, ~goal, ~grid: Grid.t, ~walls) => {
         Some(reconstructPath(currentHex, list{}))
       } else {
         // Explore neighbors
-        let updatedState = Js.List.foldLeft((state: t<'a>, neighbor: Hexagon.t) => {
+        let updatedState = List.fromArray(neighbors)->List.reduce({...state, queue}, (state: t<'a>, neighbor: Hexagon.t) => {
           switch Dict.get(state.visited, neighbor->hash) {
           | None
           | Some(false) => {
-              Js.Dict.set(state.visited, neighbor->hash, true)
-              Js.Dict.set(state.cameFrom, neighbor->hash, currentHex)
+              Dict.set(state.visited, neighbor->hash, true)
+              Dict.set(state.cameFrom, neighbor->hash, currentHex)
               {
                 ...state,
                 queue: Queue.put(state.queue, neighbor),
@@ -51,7 +51,7 @@ let breadthFirstSearch = (~start, ~goal, ~grid: Grid.t, ~walls) => {
             }
           | _ => state
           }
-        }, {...state, queue}, List.fromArray(neighbors))
+        })
         search(updatedState)
       }
     }

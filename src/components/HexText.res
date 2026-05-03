@@ -1,12 +1,7 @@
 module HexText = {
   @react.component
   let make = (~q, ~r, ~s, ~x, ~y) => {
-    let style = ReactDOM.Style.make(
-      ~fontSize="3px",
-      ~fontFamily="monospace",
-      ~pointerEvents="none",
-      (),
-    )
+    let style: ReactDOMStyle.t = {fontSize: "3px", fontFamily: "monospace", pointerEvents: "none"}
     let text = switch (q, r, s) {
     | (0, 0, 0) => "q,r,s"
     | _ => `${q->Int.toString},${r->Int.toString},${s->Int.toString}`

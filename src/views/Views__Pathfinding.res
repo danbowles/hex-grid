@@ -31,8 +31,8 @@ module PatfindingGrid = {
       }
 
       let handlePointerMove = event => {
-        let cX = event->JsxEvent.Pointer.clientX->float
-        let cY = event->JsxEvent.Pointer.clientY->float
+        let cX = event->JsxEvent.Pointer.clientX->Int.toFloat
+        let cY = event->JsxEvent.Pointer.clientY->Int.toFloat
         if position.active {
           let domP = createDomPoint(cX, cY)
           let {x: sX, y: sY} = matrixTransform(domP, matrixInversed)
