@@ -10,8 +10,7 @@
     "res:dev": "rescript watch",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "publish": "npm run build && git add dist -f && git commit -m 'pages' && git subtree push --prefix dist origin gh-pages"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@heroicons/react": "^2.1.5",
@@ -19,16 +18,17 @@
     "@rescript/core": "^1.6.1",
     "@rescript/react": "^0.15.0",
     "@rescript/runtime": "^12.2.0",
+    "@tailwindcss/vite": "^4.2.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "rescript": "^12.2.0",
     "rescript-webapi": "^0.10.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.2.1",
+    "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.4.15",
     "postcss": "^8.4.28",
-    "tailwindcss": "^3.3.3",
-    "vite": "^5.0.6"
+    "tailwindcss": "^4.2.4",
+    "vite": "^8.0.10"
   }
 }
