@@ -255,5 +255,5 @@ module MapNoise = {
 
 module Canvas = {
   @react.component
-  let make = () => <div> {"Sup"->React.string} </div>
+  let make = () => <Views__Canvas />
 }
