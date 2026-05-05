@@ -45,25 +45,21 @@ module Header = {
           <p className="text-lg text-gray-600"> {"Playing around with Hexagons"->React.string} </p>
         </div>
         <div className=navClasses ref={ReactDOM.Ref.domRef(menuRef)}>
-          <ul className="flex flex-col ml-auto lg:ml-0 lg:flex-row lg:space-x-4">
-            <li>
-              <Router.Link route=Route.MapShapes> {"Map Shapes"->React.string} </Router.Link>
-            </li>
-            <li>
-              <Router.Link route=Route.Pathfinding> {"Pathfinding"->React.string} </Router.Link>
-            </li>
-            <li>
-              <Router.Link route=Route.MapMaker> {"Map Maker"->React.string} </Router.Link>
-            </li>
-            <li>
-              <Router.Link route=Route.MapNoise> {"Map Noise"->React.string} </Router.Link>
-            </li>
+          <ul className="flex flex-col ml-auto lg:ml-0 lg:flex-row lg:space-x-2">
+            {Route.routes
+            ->Array.map(((route, _, label)) =>
+              <li key=label>
+                <Router.Link route> {label->React.string} </Router.Link>
+              </li>
+            )
+            ->React.array}
           </ul>
         </div>
         <button
           className="ml-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer block lg:hidden outline-none focus:outline-none"
           type_="button"
-          onClick={_ => toggleMenu()}>
+          onClick={_ => toggleMenu()}
+        >
           {"Menu"->React.string}
         </button>
       </div>

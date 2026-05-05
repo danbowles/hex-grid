@@ -8,6 +8,7 @@ module Link = {
     let useRouter = () => RescriptReactRouter.useUrl()
     let location = route->Route.toString
     let currentRoute = useRouter()->Route.fromUrl
+    RescriptCore.Console.log2(location, currentRoute)
     let baseClassNames = "font-bold py-2 px-4 rounded inline-block"
     let className =
       currentRoute == Some(route)
@@ -26,7 +27,8 @@ module Link = {
         ) {
           event->ReactEvent.Mouse.preventDefault
           location->RescriptReactRouter.push
-        }}>
+        }}
+    >
       children
     </a>
   }

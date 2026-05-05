@@ -36,13 +36,7 @@ module SvgHexagon = {
     let className = `${className} ${hexFill}`
 
     <>
-      <polygon
-        className
-        points
-        style={{strokeWidth: "0.3"}}
-        onMouseEnter
-        onMouseLeave
-      />
+      <polygon className points style={{strokeWidth: "0.3"}} onMouseEnter onMouseLeave />
       <g>
         {showDebugCircle
           ? <circle cx={x->Float.toString} cy={y->Float.toString} r="1" className="fill-red-500" />
@@ -257,4 +251,9 @@ module Pathfinding = {
 module MapNoise = {
   @react.component
   let make = () => <Views__MapNoise />
+}
+
+module Canvas = {
+  @react.component
+  let make = () => <div> {"Sup"->React.string} </div>
 }
