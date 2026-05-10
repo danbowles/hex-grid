@@ -6,9 +6,10 @@ module MapControlState = {
     showDebugCircle: bool,
     showCoords: bool,
     highlightNeighbors: bool,
+    noisyEdges: bool,
   }
 
-  type action = ShowColors | ShowDebugCircle | ShowCoords | HighlightNeighbors
+  type action = ShowColors | ShowDebugCircle | ShowCoords | HighlightNeighbors | NoisyEdges
 
   let reducer = (state, action) => {
     switch action {
@@ -16,6 +17,7 @@ module MapControlState = {
     | ShowDebugCircle => {...state, showDebugCircle: !state.showDebugCircle}
     | ShowCoords => {...state, showCoords: !state.showCoords}
     | HighlightNeighbors => {...state, highlightNeighbors: !state.highlightNeighbors}
+    | NoisyEdges => {...state, noisyEdges: !state.noisyEdges}
     }
   }
 
@@ -24,6 +26,7 @@ module MapControlState = {
     showDebugCircle: false,
     showCoords: true,
     highlightNeighbors: true,
+    noisyEdges: false,
   }
 }
 

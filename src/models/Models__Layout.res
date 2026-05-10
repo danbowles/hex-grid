@@ -1,4 +1,3 @@
-open Models__Orientation
 module Point = Models__Point
 module Hexagon = Models__Hexagon
 module Orientation = Models__Orientation

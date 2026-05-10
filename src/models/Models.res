@@ -8,6 +8,7 @@ module Grid = Models__Grid
 module DataGrid = Models__DataGrid
 module Queue = Models__Queue
 module GridBfs = Models__GridBfs
+module Noise = Models__Noise
 module Maps = {
   module TerrainMap = Models__Maps.TerrainMap
   module HexagonalMap = Models__Maps.HexagonalMap
