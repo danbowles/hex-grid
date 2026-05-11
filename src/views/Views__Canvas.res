@@ -47,6 +47,32 @@ let drawHexFill = (ctx, layout, hex) => {
   ctx->Canvas2d.fill
 }
 
+let drawNoisyEdgeFill = (ctx, layout, state: HashTable.t, hex) => {
+  let corners = Layout.polygonCorners(layout, hex)
+  let neighbors = Hexagon.hexNeighbors(hex)
+  let firstCorner = corners->Array.getUnsafe(0)
+  ctx->Canvas2d.beginPath
+  ctx->Canvas2d.moveTo(~x=firstCorner.x, ~y=firstCorner.y)
+  for i in 0 to 5 {
+    let a = corners->Array.getUnsafe(i)
+    let b = corners->Array.getUnsafe(mod(i + 1, 6))
+    let neighbor = neighbors->Array.getUnsafe(mod(i + 3, 6))
+    switch HashTable.get(state, neighbor) {
+    | Some(_) => ctx->Canvas2d.lineTo(~x=b.x, ~y=b.y)
+    | None =>
+      let points = Noise.noisyPoints(a, b, ~amplitude=8.0, ~minLength=4.0)
+      points
+      ->Array.sliceToEnd(~start=1)
+      ->Array.forEach(pt => ctx->Canvas2d.lineTo(~x=pt.x, ~y=pt.y))
+    }
+  }
+  ctx->Canvas2d.closePath
+  ctx->Canvas2d.setFillStyle(String, "#93c5fd")
+  ctx->Canvas2d.fill
+  ctx->Canvas2d.setStrokeStyle(String, "#1d4ed8")
+  ctx->Canvas2d.stroke
+}
+
 let drawBoundaryEdges = (ctx, layout, state: HashTable.t, hex) => {
   let corners = Layout.polygonCorners(layout, hex)
   let neighbors = Hexagon.hexNeighbors(hex)
@@ -73,14 +99,26 @@ let drawBoundaryEdges = (ctx, layout, state: HashTable.t, hex) => {
   }
 }
 
-let render = (ctx, layout, ~width, ~height, ~state: HashTable.t, ~noisyEdges=false) => {
+let render = (
+  ctx,
+  layout,
+  ~width,
+  ~height,
+  ~state: HashTable.t,
+  ~noisyEdges=false,
+  ~fillNoisyEdges=false,
+) => {
   clear(ctx, ~width, ~height)
   let hexes = state->Dict.valuesToArray
-  if noisyEdges {
-    hexes->Array.forEach(hex => drawHexFill(ctx, layout, hex))
-    hexes->Array.forEach(hex => drawBoundaryEdges(ctx, layout, state, hex))
-  } else {
-    hexes->Array.forEach(hex => drawHex(ctx, layout, hex))
+  switch (noisyEdges, fillNoisyEdges) {
+  | (true, true) => hexes->Array.forEach(hex => drawNoisyEdgeFill(ctx, layout, state, hex))
+  // hexes->Array.forEach(hex => drawHexFill(ctx, layout, hex))
+  // hexes->Array.forEach(hex => drawBoundaryEdges(ctx, layout, state, hex))
+  | (true, false) => {
+      hexes->Array.forEach(hex => drawHexFill(ctx, layout, hex))
+      hexes->Array.forEach(hex => drawBoundaryEdges(ctx, layout, state, hex))
+    }
+  | (false, _) => hexes->Array.forEach(hex => drawHex(ctx, layout, hex))
   }
 }
 
@@ -115,6 +153,7 @@ let make = () => {
 
   let controls: array<(MapControlState.action, bool, string)> = [
     (NoisyEdges, controlState.noisyEdges, "Noisy Edges"),
+    (FillNoisyEdges, controlState.fillNoisyEdges, "Fill Noisy Edges"),
   ]
 
   React.useEffect(() => {
@@ -123,10 +162,18 @@ let make = () => {
     ->Option.forEach(canvas => {
       let ctx = canvas->CanvasElement.getContext2d
       ctx->Canvas2d.setTransform(~m11=dpr, ~m12=0.0, ~m21=0.0, ~m22=dpr, ~dx=0.0, ~dy=0.0)
-      render(ctx, layout, ~width, ~height, ~state, ~noisyEdges=controlState.noisyEdges)
+      render(
+        ctx,
+        layout,
+        ~width,
+        ~height,
+        ~state,
+        ~noisyEdges=controlState.noisyEdges,
+        ~fillNoisyEdges=controlState.fillNoisyEdges,
+      )
     })
     None
-  }, (state, controlState.noisyEdges))
+  }, (state, controlState.noisyEdges, controlState.fillNoisyEdges))
 
   <>
     <div className="pb-3">
@@ -152,7 +199,7 @@ let make = () => {
       ref={ReactDOM.Ref.domRef(canvasRef)}
       width={(width * dpr)->Float.toString}
       height={(height * dpr)->Float.toString}
-      className="w-[800px] h-[600px] border border-blue-500"
+      className="w-[800px] h-[600px] border border-blue-500 m-auto flex"
       onClick={handleClick}
     />
   </>
