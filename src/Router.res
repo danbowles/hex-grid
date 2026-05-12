@@ -9,10 +9,10 @@ module Link = {
     let location = route->Route.toString
     let currentRoute = useRouter()->Route.fromUrl
     RescriptCore.Console.log2(location, currentRoute)
-    let baseClassNames = "font-bold py-2 px-4 rounded inline-block"
+    let baseClassNames = "font-bold py-2 px-4 rounded inline-flex items-center gap-2 whitespace-nowrap"
     let className =
       currentRoute == Some(route)
-        ? baseClassNames ++ " text-white bg-blue-900 hover:underline"
+        ? baseClassNames ++ " text-white bg-blue-900 hover:bg-blue-800"
         : baseClassNames ++ " text-blue-900 hover:underline"
     <a
       className
