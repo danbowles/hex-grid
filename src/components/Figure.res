@@ -104,7 +104,7 @@ module MapMakerFigure = {
     let (activeTerrain: option<Models.Terrain.kind>, setActiveTerrain) = React.useState(() =>
       terrains->Array.get(0)
     )
-    let (terrainMap, setTerrainMap) = React.useState(() => TerrainMap.make(~height=18, ~width=20))
+    let (terrainMap, setTerrainMap) = React.useState(() => TerrainMap.make(~height=12, ~width=18))
 
     let onDrawTerrain = hex => {
       setTerrainMap(_ => {
@@ -127,46 +127,49 @@ module MapMakerFigure = {
         {hashTable: table}
       })
     }
-
-    <figure>
-      <LayoutContext.Provider value={LayoutContext.layout}>
-        <div className="flex space-x-2">
-          {terrains
-          ->Array.map(Models.Terrain.make)
-          ->Array.map(terrain =>
+    <div className="max-w-5xl mx-auto">
+      <figure>
+        <LayoutContext.Provider value={LayoutContext.layout}>
+          <div className="flex space-x-2">
+            {terrains
+            ->Array.map(Models.Terrain.make)
+            ->Array.map(terrain =>
+              <button
+                key={terrain.kind->Models.Terrain.kindToString}
+                onClick={_ => setActiveTerrain(_ => Some(terrain.kind))}
+                className={[
+                  Some(terrain.kind) === activeTerrain ? "" : "opacity-50",
+                  terrain.bgColor,
+                  terrain.textColor,
+                  "p-2  border-black border",
+                ]->Array.join(" ")}
+              >
+                {terrain.kind->Models.Terrain.kindToString->React.string}
+              </button>
+            )
+            ->React.array}
+            <div className="border-l-8 border-l-white" />
             <button
-              key={terrain.kind->Models.Terrain.kindToString}
-              onClick={_ => setActiveTerrain(_ => Some(terrain.kind))}
-              className={[
-                Some(terrain.kind) === activeTerrain ? "" : "opacity-50",
-                terrain.bgColor,
-                terrain.textColor,
-                "p-2  border-black border",
-              ]->Array.join(" ")}>
-              {terrain.kind->Models.Terrain.kindToString->React.string}
+              onClick={_ => onFillMapClick()}
+              className="p-2 border-black border flex items-center space-x-2"
+            >
+              <HeroIcons__Solid.PaintBrushIcon
+                className={"h-5 w-5 " ++
+                switch activeTerrain {
+                | Some(Clear) => "text-gray-700"
+                | Some(k) => k->Models.Terrain.getFillColor
+                | _ => "text-gray-700"
+                }}
+              />
+              <span> {"Fill"->React.string} </span>
             </button>
-          )
-          ->React.array}
-          <div className="border-l-8 border-l-white" />
-          <button
-            onClick={_ => onFillMapClick()}
-            className="p-2 border-black border flex items-center space-x-2">
-            <HeroIcons__Solid.PaintBrushIcon
-              className={"h-5 w-5 " ++
-              switch activeTerrain {
-              | Some(Clear) => "text-gray-700"
-              | Some(k) => k->Models.Terrain.getFillColor
-              | _ => "text-gray-700"
-              }}
-            />
-            <span> {"Fill"->React.string} </span>
-          </button>
-        </div>
-        <Svg>
-          <EmptyGrid terrainMap onDrawTerrain />
-        </Svg>
-      </LayoutContext.Provider>
-    </figure>
+          </div>
+          <Svg>
+            <EmptyGrid terrainMap onDrawTerrain />
+          </Svg>
+        </LayoutContext.Provider>
+      </figure>
+    </div>
   }
 }
 

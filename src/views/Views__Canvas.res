@@ -69,8 +69,6 @@ let drawNoisyEdgeFill = (ctx, layout, state: HashTable.t, hex) => {
   ctx->Canvas2d.closePath
   ctx->Canvas2d.setFillStyle(String, "#93c5fd")
   ctx->Canvas2d.fill
-  ctx->Canvas2d.setStrokeStyle(String, "#1d4ed8")
-  ctx->Canvas2d.stroke
 }
 
 let drawBoundaryEdges = (ctx, layout, state: HashTable.t, hex) => {
@@ -111,9 +109,10 @@ let render = (
   clear(ctx, ~width, ~height)
   let hexes = state->Dict.valuesToArray
   switch (noisyEdges, fillNoisyEdges) {
-  | (true, true) => hexes->Array.forEach(hex => drawNoisyEdgeFill(ctx, layout, state, hex))
-  // hexes->Array.forEach(hex => drawHexFill(ctx, layout, hex))
-  // hexes->Array.forEach(hex => drawBoundaryEdges(ctx, layout, state, hex))
+  | (true, true) => {
+      hexes->Array.forEach(hex => drawNoisyEdgeFill(ctx, layout, state, hex))
+      hexes->Array.forEach(hex => drawBoundaryEdges(ctx, layout, state, hex))
+    }
   | (true, false) => {
       hexes->Array.forEach(hex => drawHexFill(ctx, layout, hex))
       hexes->Array.forEach(hex => drawBoundaryEdges(ctx, layout, state, hex))

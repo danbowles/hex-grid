@@ -153,7 +153,7 @@ let make = () => {
     <circle key cx cy r="7.5" className="fill-slate-300" />
   }
 
-  <figure>
+  <figure className="max-w-5xl flex m-auto">
     <LayoutContext.Provider value={LayoutContext.layout}>
       <Svg>
         <PatfindingGrid grid />

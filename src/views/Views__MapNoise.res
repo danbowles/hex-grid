@@ -25,7 +25,7 @@ module NoisyGrid = {
 @react.component
 let make = () => {
   let grid = Grid.makeRectangle(~height=14, ~width=18)->DataGrid.make
-  <figure>
+  <figure className="max-w-5xl flex m-auto">
     <LayoutContext.Provider value={LayoutContext.layout}>
       <Svg>
         <NoisyGrid grid />
