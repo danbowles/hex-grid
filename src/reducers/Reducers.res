@@ -8,10 +8,17 @@ module MapControlState = {
     highlightNeighbors: bool,
     noisyEdges: bool,
     fillNoisyEdges: bool,
+    showWater: bool,
   }
 
   type action =
-    ShowColors | ShowDebugCircle | ShowCoords | HighlightNeighbors | NoisyEdges | FillNoisyEdges
+    | ShowColors
+    | ShowDebugCircle
+    | ShowCoords
+    | HighlightNeighbors
+    | NoisyEdges
+    | FillNoisyEdges
+    | ShowWater
 
   let reducer = (state, action) => {
     switch action {
@@ -21,6 +28,7 @@ module MapControlState = {
     | HighlightNeighbors => {...state, highlightNeighbors: !state.highlightNeighbors}
     | NoisyEdges => {...state, noisyEdges: !state.noisyEdges}
     | FillNoisyEdges => {...state, fillNoisyEdges: !state.fillNoisyEdges}
+    | ShowWater => {...state, showWater: !state.showWater}
     }
   }
 
@@ -31,6 +39,7 @@ module MapControlState = {
     highlightNeighbors: true,
     noisyEdges: false,
     fillNoisyEdges: false,
+    showWater: false,
   }
 }
 
